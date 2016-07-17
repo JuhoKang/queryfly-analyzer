@@ -66,6 +66,7 @@ public class ApiRequestParser
     usingHeader.add("test");
     usingHeader.add("token");
     usingHeader.add("email");
+    usingHeader.add("generateId");
   }
 
   @Override
@@ -107,6 +108,10 @@ public class ApiRequestParser
 
         ApiService service = ServiceDispatcher.dispatch(reqData);
         String apiResult = "";
+        
+        for(String key : reqData.keySet()){
+          System.out.println("requestMap key : "+key+" value : "+reqData.get(key));
+        }
 
         try {
           apiResult = service.serve(reqData);

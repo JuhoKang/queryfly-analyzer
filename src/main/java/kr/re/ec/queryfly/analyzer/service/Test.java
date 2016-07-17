@@ -8,17 +8,14 @@ import org.springframework.stereotype.Service;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import kr.re.ec.queryfly.analyzer.core.ApiService;
+import kr.re.ec.queryfly.analyzer.core.SimpleApiService;
 
 @Service("test")
-public class Test implements ApiService {
+public class Test extends SimpleApiService {
 
   @Override
-  public String serve(Map<String,String> request) throws ServiceException {
-    for(String key : request.keySet()){
-      System.out.println("has key");
-      System.out.println("requestMap key : "+key+" value : "+request.get(key));
-    }
+  public String whenGet(Map<String, String> request)
+      throws RequestParamException {
     JsonObject apiResult = new JsonObject();
     JsonArray array = new JsonArray();
     JsonObject QR = new JsonObject();
@@ -54,6 +51,24 @@ public class Test implements ApiService {
     apiResult.add("QRarray", array);
     apiResult.addProperty("createTime", LocalDateTime.now().toString());
     return apiResult.toString();
+  }
+
+  @Override
+  public String whenPost(Map<String, String> request)
+      throws RequestParamException {
+    throw new RequestParamException();
+  }
+
+  @Override
+  public String whenUpdate(Map<String, String> request)
+      throws RequestParamException {
+    throw new RequestParamException();
+  }
+
+  @Override
+  public String whenDelete(Map<String, String> request)
+      throws RequestParamException {
+    throw new RequestParamException();
   }
 
 }

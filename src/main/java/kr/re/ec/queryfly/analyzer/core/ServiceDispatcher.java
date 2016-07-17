@@ -25,12 +25,6 @@ public class ServiceDispatcher {
     String serviceUri = requestMap.get("REQUEST_URI");
     String beanName = null;
 
-    logger.info("bean count : " + springContext.getBeanDefinitionCount());
-    String[] names = springContext.getBeanDefinitionNames();
-    for (int i = 0; i < names.length; i++) {
-      logger.info("bean : " + names[i]);
-    }
-
     if (serviceUri == null) {
       beanName = "notFound";
     }
@@ -57,6 +51,8 @@ public class ServiceDispatcher {
       beanName = "users";
     } else if (serviceUri.startsWith("/test")) {
       beanName = "test";
+    } else if (serviceUri.startsWith("/generateId")) {
+      beanName = "idGenerator";
     } else {
       beanName = "notFound";
     }
