@@ -32,7 +32,7 @@ public class ObjectIdGenerator extends SimpleApiService {
   }
 
   @Override
-  public String whenUpdate(Map<String, String> request)
+  public String whenPut(Map<String, String> request)
       throws RequestParamException {
     throw new RequestParamException();
   }

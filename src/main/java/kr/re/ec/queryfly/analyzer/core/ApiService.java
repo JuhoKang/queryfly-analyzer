@@ -12,19 +12,7 @@ import kr.re.ec.queryfly.analyzer.service.ServiceException;
  *
  */
 public interface ApiService {
-
-  public String whenGet(Map<String, String> request)
-      throws RequestParamException;
-
-  public String whenPost(Map<String, String> request)
-      throws RequestParamException;
-
-  public String whenUpdate(Map<String, String> request)
-      throws RequestParamException;
-
-  public String whenDelete(Map<String, String> request)
-      throws RequestParamException;
-
+  
   /**
    * 
    * @param request

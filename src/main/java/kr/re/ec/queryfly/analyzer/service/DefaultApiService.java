@@ -25,7 +25,7 @@ public class DefaultApiService extends SimpleApiService {
   }
 
   @Override
-  public String whenUpdate(Map<String, String> request)
+  public String whenPut(Map<String, String> request)
       throws RequestParamException {
     return jsonNotFound();
   }

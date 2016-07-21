@@ -9,15 +9,16 @@ import kr.re.ec.queryfly.analyzer.service.ServiceException;
  * Abstract Class for writing a simple {@link ApiService}.<br>
  * Extend this class and implement get,post,delete,update features<br>
  * If you don't want to use one of those methods throw a {@link RequestParamException}
+ * 
  * @author MNDCERT
  *
  */
-public abstract class SimpleApiService implements ApiService{
-  
+public abstract class SimpleApiService implements CrudApiService {
+
   @Override
   public String serve(Map<String, String> request)
       throws ServiceException, RequestParamException {
-    
+
     String httpMethod = request.get("REQUEST_METHOD");
     String result = "";
     switch (httpMethod) {
@@ -31,13 +32,13 @@ public abstract class SimpleApiService implements ApiService{
         result = whenGet(request);
         break;
       case "UPDATE":
-        result = whenUpdate(request);
+        result = whenPut(request);
         break;
       default:
         throw new RequestParamException();
     }
-    
-    if(result.equals("")){
+
+    if (result.equals("")) {
       throw new UnknownError();
     }
     return result;
