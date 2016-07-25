@@ -46,9 +46,6 @@ import kr.re.ec.queryfly.analyzer.util.JsonHttpStatus;
 public class ApiRequestParser
     extends SimpleChannelInboundHandler<FullHttpMessage> {
 
-  /**
-   * log4j logger
-   */
   private static final Logger logger =
       LoggerFactory.getLogger(ApiRequestParser.class);
 
@@ -56,8 +53,6 @@ public class ApiRequestParser
 
   private static final HttpDataFactory factory =
       new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE); // Disk
-
-  private HttpPostRequestDecoder decoder;
 
   private Map<String, String> reqData = new HashMap<String, String>();
 
@@ -108,9 +103,10 @@ public class ApiRequestParser
 
         ApiService service = ServiceDispatcher.dispatch(reqData);
         String apiResult = "";
-        
-        for(String key : reqData.keySet()){
-          System.out.println("requestMap key : "+key+" value : "+reqData.get(key));
+
+        for (String key : reqData.keySet()) {
+          System.out.println(
+              "requestMap key : " + key + " value : " + reqData.get(key));
         }
 
         try {
@@ -141,6 +137,7 @@ public class ApiRequestParser
   }
 
   private void readPostData() {
+    HttpPostRequestDecoder decoder = null;
     try {
       decoder = new HttpPostRequestDecoder(factory, request);
       for (InterfaceHttpData data : decoder.getBodyHttpDatas()) {
@@ -168,9 +165,8 @@ public class ApiRequestParser
 
   private boolean writeResponse(HttpMessage msg, ChannelHandlerContext ctx,
       String apiResult) {
-    // Decide whether to close the connection or not.
     boolean keepAlive = HttpUtil.isKeepAlive(msg);
-    // Build the response object.
+
     FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1,
         msg.decoderResult().isSuccess() ? OK : BAD_REQUEST,
         Unpooled.copiedBuffer(apiResult.toString(), CharsetUtil.UTF_8));
@@ -186,6 +182,7 @@ public class ApiRequestParser
       // -
       // http://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01.html#Connection
       response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+
     }
 
     // Write the response.
