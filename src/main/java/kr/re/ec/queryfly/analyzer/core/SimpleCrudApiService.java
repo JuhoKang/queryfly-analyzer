@@ -13,7 +13,7 @@ import kr.re.ec.queryfly.analyzer.service.ServiceException;
  * @author MNDCERT
  *
  */
-public abstract class SimpleApiService implements CrudApiService {
+public abstract class SimpleCrudApiService implements CrudApiService {
 
   @Override
   public String serve(Map<String, String> request)

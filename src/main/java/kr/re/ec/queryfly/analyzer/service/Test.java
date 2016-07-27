@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import kr.re.ec.queryfly.analyzer.core.SimpleApiService;
+import kr.re.ec.queryfly.analyzer.core.SimpleCrudApiService;
 
 @Service("test")
-public class Test extends SimpleApiService {
+public class Test extends SimpleCrudApiService {
 
   @Override
   public String whenGet(Map<String, String> request)

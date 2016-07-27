@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 
 import com.google.gson.JsonObject;
 
-import kr.re.ec.queryfly.analyzer.core.SimpleApiService;
+import kr.re.ec.queryfly.analyzer.core.SimpleCrudApiService;
 
 
 @Service("notFound")
-public class DefaultApiService extends SimpleApiService {
+public class DefaultApiService extends SimpleCrudApiService {
 
   @Override
   public String whenGet(Map<String, String> request)

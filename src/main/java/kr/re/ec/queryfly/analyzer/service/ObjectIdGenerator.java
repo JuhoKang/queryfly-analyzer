@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.gson.JsonObject;
 
-import kr.re.ec.queryfly.analyzer.core.SimpleApiService;
+import kr.re.ec.queryfly.analyzer.core.SimpleCrudApiService;
 
 /**
  * Generates an ObjectId for a Fly<br>
@@ -16,7 +16,7 @@ import kr.re.ec.queryfly.analyzer.core.SimpleApiService;
  *
  */
 @Service("idGenerator")
-public class ObjectIdGenerator extends SimpleApiService {
+public class ObjectIdGenerator extends SimpleCrudApiService {
 
   @Override
   public String whenGet(Map<String, String> request) {

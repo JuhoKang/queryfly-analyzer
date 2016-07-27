@@ -8,7 +8,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslContext;
-import kr.re.ec.queryfly.analyzer.core.ApiRequestParser;
+import kr.re.ec.queryfly.analyzer.core.ApiRequestHandler;
 
 public class AppServerInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -29,7 +29,7 @@ public class AppServerInitializer extends ChannelInitializer<SocketChannel> {
     p.addLast(new HttpObjectAggregator(65536));
     p.addLast(new HttpResponseEncoder());
     p.addLast(new HttpContentCompressor());
-    p.addLast(new ApiRequestParser());
+    p.addLast(new ApiRequestHandler());
 
   }
 
