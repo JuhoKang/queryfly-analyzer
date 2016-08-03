@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>kr.re.ec</groupId>
+	<groupId>kr.ec.queryfly</groupId>
 	<artifactId>queryfly-analyzer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
@@ -26,6 +26,7 @@
 			<artifactId>netty-all</artifactId>
 			<version>4.1.2.Final</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver</artifactId>
@@ -34,13 +35,26 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>4.3.1.RELEASE</version>
+			<version>4.3.2.RELEASE</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>4.3.2.RELEASE</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-mongodb</artifactId>
+			<version>1.9.2.RELEASE</version>
 		</dependency>
 
 		<!-- Logging -->
@@ -113,7 +127,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>kr.re.ec.queryfly.analyzer.main.AppServerMain</mainClass>
+							<mainClass>kr.ec.queryfly.analyzer.main.AppServerMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
