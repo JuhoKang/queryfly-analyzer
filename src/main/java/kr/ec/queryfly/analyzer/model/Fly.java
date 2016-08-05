@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
@@ -11,10 +12,16 @@ public class Fly {
 
   @Id
   private final ObjectId id;
+  @Indexed(name = "flybaseId")
+  private final ObjectId flybaseId;
   private final List<QaPair> qaPairs;
 
   public ObjectId getId() {
     return id;
+  }
+
+  public ObjectId getFlybaseId() {
+    return flybaseId;
   }
 
   public List<QaPair> getQaPairs() {
@@ -23,6 +30,7 @@ public class Fly {
 
   private Fly(Builder builder) {
     this.id = builder.id;
+    this.flybaseId = builder.flybaseId;
     this.qaPairs = builder.qaPairs;
   }
 
@@ -30,9 +38,11 @@ public class Fly {
 
 
     private ObjectId id;
+    private final ObjectId flybaseId;
     private final List<QaPair> qaPairs;
 
-    public Builder(List<QaPair> qaPairs) {
+    public Builder(ObjectId flybaseId, List<QaPair> qaPairs) {
+      this.flybaseId = flybaseId;
       this.qaPairs = qaPairs;
     }
 

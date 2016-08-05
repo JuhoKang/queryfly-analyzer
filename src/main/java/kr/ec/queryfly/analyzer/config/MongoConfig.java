@@ -1,24 +1,19 @@
 package kr.ec.queryfly.analyzer.config;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.convert.ReadingConverter;
+import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.core.convert.CustomConversions;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
-
-import kr.ec.queryfly.analyzer.core.ServiceDispatcher;
-import kr.ec.queryfly.analyzer.data.util.AnswerOptionReadConverter;
-import kr.ec.queryfly.analyzer.data.util.AnswerOptionWriteConverter;
-import kr.ec.queryfly.analyzer.data.util.FlyReadConverter;
-import kr.ec.queryfly.analyzer.data.util.FlyWriteConverter;
-import kr.ec.queryfly.analyzer.data.util.QaPairReadConverter;
-import kr.ec.queryfly.analyzer.data.util.QaPairWriteConverter;
 
 @Configuration
 @EnableMongoRepositories(basePackages = "kr.ec.queryfly.analyzer.data.service")
@@ -50,14 +45,11 @@ public class MongoConfig extends AbstractMongoConfiguration {
      * i++) { System.out.println(names[i]); } System.out.println("are the beans ready" +
      * springContext.containsBean("answerOptionReadConverter"));
      */
-    springContext.getBean(AnswerOptionReadConverter.class);
-    return new CustomConversions(
-        Arrays.asList(springContext.getBean(AnswerOptionReadConverter.class),
-            springContext.getBean(AnswerOptionWriteConverter.class),
-            springContext.getBean(FlyReadConverter.class),
-            springContext.getBean(FlyWriteConverter.class),
-            springContext.getBean(QaPairReadConverter.class),
-            springContext.getBean(QaPairWriteConverter.class)));
+    List<Object> conversions = new ArrayList<Object>(
+        springContext.getBeansWithAnnotation(WritingConverter.class).values());
+    conversions.addAll(
+        springContext.getBeansWithAnnotation(ReadingConverter.class).values());
+    return new CustomConversions(conversions);
   }
 
 }

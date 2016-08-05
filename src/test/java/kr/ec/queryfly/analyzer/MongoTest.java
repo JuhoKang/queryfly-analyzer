@@ -1,5 +1,6 @@
 package kr.ec.queryfly.analyzer;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +9,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -17,8 +20,10 @@ import com.google.gson.GsonBuilder;
 import kr.ec.queryfly.analyzer.config.AppServerContextConfig;
 import kr.ec.queryfly.analyzer.config.MongoConfig;
 import kr.ec.queryfly.analyzer.data.service.FlyRepository;
+import kr.ec.queryfly.analyzer.data.service.FlybaseRepository;
 import kr.ec.queryfly.analyzer.model.AnswerOption;
 import kr.ec.queryfly.analyzer.model.Fly;
+import kr.ec.queryfly.analyzer.model.Flybase;
 import kr.ec.queryfly.analyzer.model.QaPair;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -28,6 +33,9 @@ public class MongoTest {
 
   @Autowired
   FlyRepository flyRepo;
+  
+  @Autowired
+  FlybaseRepository flyBaseRepo;
 
   @Before
   public void setUp() {
@@ -41,7 +49,13 @@ public class MongoTest {
 
   @Test
   public void testMongo() {
+    flyBaseRepo.deleteAll();
     flyRepo.deleteAll();
+    
+    Flybase fb = new Flybase.Builder("flybase 1").description("description").createTime(ZonedDateTime.now()).build();
+    flyBaseRepo.save(fb);
+    Flybase savedFb = flyBaseRepo.findAll().get(0);
+    
     List<String> ap1 = new ArrayList<String>();
     ap1.add("1");
 
@@ -63,7 +77,7 @@ public class MongoTest {
     List<QaPair> qaPairs = new ArrayList<QaPair>();
     qaPairs.add(pair1);
     qaPairs.add(pair2);
-    Fly fly = new Fly.Builder(qaPairs).build();
+    Fly fly = new Fly.Builder(savedFb.getId(),qaPairs).build();
 
     System.out.println("count before save: " + flyRepo.count());
     flyRepo.save(fly);
@@ -71,6 +85,7 @@ public class MongoTest {
 
     List<Fly> flies = flyRepo.findAll();
 
+    
     for (Fly f : flies) {
       System.out.println(f);
     }
@@ -83,6 +98,9 @@ public class MongoTest {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     // String jsonOutput = gson.toJson(searchfly);
 
+    System.out.println("flybase is");
+    System.out.println(gson.toJson(savedFb));
+    
     System.out.println("json output of this ");
     // System.out.println(jsonOutput);
 

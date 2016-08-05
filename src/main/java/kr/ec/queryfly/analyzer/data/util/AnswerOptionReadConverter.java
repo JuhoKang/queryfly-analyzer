@@ -3,12 +3,14 @@ package kr.ec.queryfly.analyzer.data.util;
 import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.convert.ReadingConverter;
 import org.springframework.stereotype.Component;
 
 import com.mongodb.DBObject;
 
 import kr.ec.queryfly.analyzer.model.AnswerOption;
 
+@ReadingConverter
 @Component
 public class AnswerOptionReadConverter
     implements Converter<DBObject, AnswerOption> {

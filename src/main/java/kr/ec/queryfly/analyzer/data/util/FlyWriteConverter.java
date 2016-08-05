@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.convert.WritingConverter;
 import org.springframework.stereotype.Component;
 
 import com.mongodb.BasicDBObject;
@@ -12,7 +13,7 @@ import com.mongodb.DBObject;
 
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.model.QaPair;;
-
+@WritingConverter
 @Component
 public class FlyWriteConverter implements Converter<Fly, DBObject> {
 
@@ -21,22 +22,20 @@ public class FlyWriteConverter implements Converter<Fly, DBObject> {
 
   @Override
   public DBObject convert(Fly source) {
-    
-    if(qpwConverter == null){
-      System.out.println("converter is null");
-    }
-    
+
     DBObject dbo = new BasicDBObject();
     if (source.getId() != null) {
-      System.out.println("here");
       dbo.put("_id", source.getId());
     }
-    System.out.println("here2");
+
+    dbo.put("flybaseId", source.getFlybaseId());
+
     List<DBObject> list = new ArrayList<DBObject>();
     for (QaPair item : source.getQaPairs()) {
       list.add(qpwConverter.convert(item));
       dbo.put("qaPairs", list);
     }
+
     return dbo;
   }
 
