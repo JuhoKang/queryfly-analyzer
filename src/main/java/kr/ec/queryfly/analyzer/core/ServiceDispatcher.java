@@ -47,8 +47,8 @@ public class ServiceDispatcher {
           beanName = "notFound";
           break;
       }
-    } else if (serviceUri.startsWith("/users")) {
-      beanName = "users";
+    } else if (serviceUri.startsWith("/flybase")) {
+      beanName = "flybaseService";
     } else if (serviceUri.startsWith("/test")) {
       beanName = "test";
     } else if (serviceUri.startsWith("/generateId")) {

@@ -59,6 +59,7 @@ public class ApiRequestHandler
     usingHeader.add("token");
     usingHeader.add("email");
     usingHeader.add("generateId");
+    usingHeader.add("flybase");
   }
 
   @Override

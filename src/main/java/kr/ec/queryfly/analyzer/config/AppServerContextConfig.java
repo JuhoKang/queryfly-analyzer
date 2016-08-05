@@ -10,7 +10,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 @Configuration
-@ComponentScan("kr.ec.queryfly.analyzer.config, kr.ec.queryfly.analyzer.service, kr.ec.queryfly.analyzer.core, kr.ec.queryfly.analyzer.data.util")
+@ComponentScan("kr.ec.queryfly.analyzer.config, kr.ec.queryfly.analyzer.web.service, kr.ec.queryfly.analyzer.core, kr.ec.queryfly.analyzer.data.util, kr.ec.queryfly.analyzer.util")
 @PropertySource("classpath:appserver.properties")
 public class AppServerContextConfig {
 
