@@ -1,5 +1,7 @@
 package kr.ec.queryfly.analyzer.core;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -18,43 +20,17 @@ public class ServiceDispatcher {
     ServiceDispatcher.springContext = springContext;
   }
 
-  protected static Logger logger =
-      LoggerFactory.getLogger(ServiceDispatcher.class);
+  protected static Logger logger = LoggerFactory.getLogger(ServiceDispatcher.class);
 
   public static ApiService dispatch(Map<String, String> requestMap) {
-    String serviceUri = requestMap.get("REQUEST_URI");
+    String serviceUri = requestMap.get(ApiRequestHandler.REQUEST_URI);
     String beanName = null;
-
     if (serviceUri == null) {
       beanName = "notFound";
-    }
-
-    if (serviceUri.startsWith("/tokens")) {
-      String httpMethod = requestMap.get("REQUEST_METHOD");
-
-      switch (httpMethod) {
-        case "POST":
-          beanName = "tokenIssue";
-          break;
-        case "DELETE":
-          beanName = "tokenExpier";
-          break;
-        case "GET":
-          beanName = "tokenVerify";
-          break;
-
-        default:
-          beanName = "notFound";
-          break;
-      }
-    } else if (serviceUri.startsWith("/flybase")) {
-      beanName = "flybaseService";
-    } else if (serviceUri.startsWith("/test")) {
-      beanName = "test";
-    } else if (serviceUri.startsWith("/generateId")) {
-      beanName = "idGenerator";
     } else {
-      beanName = "notFound";
+      String serviceEntry = serviceUri.split("/")[1];
+      logger.info("serviceEntry : " + serviceEntry);
+      beanName = findService(serviceEntry);
     }
 
     ApiService service = null;
@@ -66,5 +42,15 @@ public class ServiceDispatcher {
     }
 
     return service;
+  }
+
+  private static String findService(String entry) {
+    if (entry.equals("flybase")) {
+      return "flybaseService";
+    } else if (entry.equals("fly")) {
+      return "flyService";
+    } else {
+      return "notFound";
+    }
   }
 }

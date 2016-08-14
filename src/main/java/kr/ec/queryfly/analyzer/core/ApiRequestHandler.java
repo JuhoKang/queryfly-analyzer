@@ -1,6 +1,5 @@
 package kr.ec.queryfly.analyzer.core;
 
-
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
@@ -30,6 +29,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
@@ -40,11 +40,13 @@ import io.netty.util.CharsetUtil;
 import kr.ec.queryfly.analyzer.util.JsonHttpStatus;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
 
-public class ApiRequestHandler
-    extends SimpleChannelInboundHandler<FullHttpMessage> {
+public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessage> {
 
-  private static final Logger logger =
-      LoggerFactory.getLogger(ApiRequestHandler.class);
+  public static final String REQUEST_URI = "REQUEST_URI";
+  
+  public static final String REQUEST_METHOD = "REQUEST_METHOD";
+
+  private static final Logger logger = LoggerFactory.getLogger(ApiRequestHandler.class);
 
   private HttpRequest request;
 
@@ -55,11 +57,6 @@ public class ApiRequestHandler
 
   private static final Set<String> usingHeader = new HashSet<String>();
   static {
-    usingHeader.add("test");
-    usingHeader.add("token");
-    usingHeader.add("email");
-    usingHeader.add("generateId");
-    usingHeader.add("flybase");
   }
 
   @Override
@@ -79,6 +76,7 @@ public class ApiRequestHandler
         send100Continue(ctx);
       }
 
+      // Don't know what this part does.
       HttpHeaders headers = request.headers();
       if (!headers.isEmpty()) {
         for (Map.Entry<String, String> h : headers) {
@@ -89,8 +87,8 @@ public class ApiRequestHandler
         }
       }
 
-      reqData.put("REQUEST_URI", request.uri());
-      reqData.put("REQUEST_METHOD", request.method().name());
+      reqData.put(REQUEST_URI, request.uri());
+      reqData.put(REQUEST_METHOD, request.method().name());
     }
 
     // Request content 처리.
@@ -101,8 +99,7 @@ public class ApiRequestHandler
       String apiResult = "";
 
       for (String key : reqData.keySet()) {
-        System.out.println(
-            "requestMap key : " + key + " value : " + reqData.get(key));
+        logger.info("requestMap key : " + key + " value : " + reqData.get(key));
       }
 
       try {
@@ -120,8 +117,7 @@ public class ApiRequestHandler
       if (!writeResponse(msg, ctx, apiResult)) {
         // If keep-alive is off, close the connection once the
         // content is fully written.
-        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER)
-            .addListener(ChannelFutureListener.CLOSE);
+        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
       }
       reset();
     }
@@ -129,6 +125,10 @@ public class ApiRequestHandler
 
   private void reset() {
     request = null;
+  }
+
+  private void readUrlParams() {
+    QueryStringDecoder decoder = new QueryStringDecoder(reqData.get(REQUEST_URI));
   }
 
   private void readPostData() {
@@ -141,8 +141,7 @@ public class ApiRequestHandler
             try {
               reqData.put(attribute.getName(), attribute.getValue());
             } catch (IOException e) {
-              logger.error(
-                  "BODY Attribute: " + attribute.getHttpDataType().name(), e);
+              logger.error("BODY Attribute: " + attribute.getHttpDataType().name(), e);
               e.printStackTrace();
             }
           });
@@ -162,21 +161,19 @@ public class ApiRequestHandler
     }
   }
 
-  private boolean writeResponse(HttpMessage msg, ChannelHandlerContext ctx,
-      String apiResult) {
+  private boolean writeResponse(HttpMessage msg, ChannelHandlerContext ctx, String apiResult) {
     boolean keepAlive = HttpUtil.isKeepAlive(msg);
 
-    FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1,
-        msg.decoderResult().isSuccess() ? OK : BAD_REQUEST,
-        Unpooled.copiedBuffer(apiResult.toString(), CharsetUtil.UTF_8));
+    FullHttpResponse response =
+        new DefaultFullHttpResponse(HTTP_1_1, msg.decoderResult().isSuccess() ? OK : BAD_REQUEST,
+            Unpooled.copiedBuffer(apiResult.toString(), CharsetUtil.UTF_8));
 
     response.headers().set(CONTENT_TYPE, "application/json; charset=UTF-8");
 
     if (keepAlive) {
 
       // Add 'Content-Length' header only for a keep-alive connection.
-      response.headers().set(CONTENT_LENGTH,
-          response.content().readableBytes());
+      response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
       // Add keep alive header as per:
       // -
       // http://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01.html#Connection
