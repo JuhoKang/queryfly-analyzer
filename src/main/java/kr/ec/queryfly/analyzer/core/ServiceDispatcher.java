@@ -1,7 +1,5 @@
 package kr.ec.queryfly.analyzer.core;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;

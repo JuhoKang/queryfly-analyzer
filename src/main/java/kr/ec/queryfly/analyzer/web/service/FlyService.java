@@ -1,10 +1,13 @@
 package kr.ec.queryfly.analyzer.web.service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.google.common.base.Splitter;
 
 import kr.ec.queryfly.analyzer.core.ApiRequestHandler;
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
@@ -24,19 +27,21 @@ public class FlyService extends SimpleCrudApiService {
   @Override
   public String whenGet(Map<String, String> request) throws RequestParamException {
     String uri = request.get(ApiRequestHandler.REQUEST_URI);
-    String[] uriElements = uri.split("/");
-    // uriElements[1] is fly.
+    //get rid of the first "/"
+    uri = uri.substring(1);
+    List<String> uriElements =Splitter.onPattern("/").splitToList(uri);
+    // uriElements[0] is fly.
     for(String e : uriElements){
       System.out.println("element : "+e);
     }
 
-    if (uriElements.length == 3) {
-      String flyId = uriElements[2];
+    if (uriElements.size() == 2) {
+      String flyId = uriElements.get(1);
       Fly resultFly = flyRepo.findOne(new ObjectId(flyId));
       return gson.toJson(resultFly);
-    } else if (uriElements.length == 4) {
-      String flyId = uriElements[2];
-      String operation = uriElements[3];
+    } else if (uriElements.size() == 3) {
+      String flyId = uriElements.get(1);
+      String operation = uriElements.get(2);
       if (operation.equals("stat")) {
         // do the stat thing.
         return null;

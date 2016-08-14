@@ -29,7 +29,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
@@ -125,10 +124,6 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
 
   private void reset() {
     request = null;
-  }
-
-  private void readUrlParams() {
-    QueryStringDecoder decoder = new QueryStringDecoder(reqData.get(REQUEST_URI));
   }
 
   private void readPostData() {
