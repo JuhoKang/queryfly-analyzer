@@ -2,24 +2,31 @@ package kr.ec.queryfly.analyzer.model;
 
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
+/**
+ * User Builder to build this object.
+ * 
+ * @author mndcert
+ *
+ */
 public class Fly {
 
   @Id
-  private final String id;
+  private final ObjectId id;
   @Indexed(name = "flybaseId")
-  private final String flybaseId;
+  private final ObjectId flybaseId;
   private final List<QaPair> qaPairs;
 
-  public String getId() {
+  public ObjectId getId() {
     return id;
   }
 
-  public String getFlybaseId() {
+  public ObjectId getFlybaseId() {
     return flybaseId;
   }
 
@@ -33,14 +40,19 @@ public class Fly {
     this.qaPairs = builder.qaPairs;
   }
 
+  /**
+   * mandatory : String flybaseId, List<QaPair> qaPairs
+   * 
+   * @author mndcert
+   *
+   */
   public static class Builder {
 
-
-    private String id;
-    private final String flybaseId;
+    private ObjectId id;
+    private final ObjectId flybaseId;
     private final List<QaPair> qaPairs;
 
-    public Builder(String flybaseId, List<QaPair> qaPairs) {
+    public Builder(ObjectId flybaseId, List<QaPair> qaPairs) {
       if (flybaseId == null || qaPairs == null) {
         throw new IllegalArgumentException("flybaseId or qaPairs can't be null");
       }
@@ -48,7 +60,7 @@ public class Fly {
       this.qaPairs = qaPairs;
     }
 
-    public Builder id(String id) {
+    public Builder id(ObjectId id) {
       this.id = id;
       return this;
     }
@@ -57,6 +69,19 @@ public class Fly {
       return new Fly(this);
     }
 
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder2 = new StringBuilder();
+    builder2.append("Fly [id=");
+    builder2.append(id);
+    builder2.append(", flybaseId=");
+    builder2.append(flybaseId);
+    builder2.append(", qaPairs=");
+    builder2.append(qaPairs);
+    builder2.append("]");
+    return builder2.toString();
   }
 
   @Override
@@ -95,6 +120,5 @@ public class Fly {
       return false;
     return true;
   }
-
 
 }

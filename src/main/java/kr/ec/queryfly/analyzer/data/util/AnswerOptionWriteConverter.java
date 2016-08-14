@@ -11,13 +11,14 @@ import kr.ec.queryfly.analyzer.model.AnswerOption;
 
 @WritingConverter
 @Component
-public class AnswerOptionWriteConverter
-    implements Converter<AnswerOption, DBObject> {
+public class AnswerOptionWriteConverter implements Converter<AnswerOption, DBObject> {
 
   @Override
   public DBObject convert(AnswerOption source) {
     DBObject dbo = new BasicDBObject();
-    dbo.put("answerPool", source.getAnswerPool());
+    if (source.getAnswerPool() != null) {
+      dbo.put("answerPool", source.getAnswerPool());
+    }
     dbo.put("option", source.getOption());
     return dbo;
   }

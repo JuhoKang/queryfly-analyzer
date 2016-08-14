@@ -23,8 +23,11 @@ public class QaPairWriteConverter implements Converter<QaPair, DBObject> {
 
     dbo.put("question", source.getQuestion());
     dbo.put("answer", source.getAnswer());
-    //
-    dbo.put("answerOption", aowConverter.convert(source.getAnswerOption()));
+
+    if (source.getAnswerOption() != null) {
+      dbo.put("answerOption", aowConverter.convert(source.getAnswerOption()));
+    }
+
     return dbo;
   }
 

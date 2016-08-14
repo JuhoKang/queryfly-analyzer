@@ -12,8 +12,7 @@ import kr.ec.queryfly.analyzer.model.AnswerOption;
 
 @ReadingConverter
 @Component
-public class AnswerOptionReadConverter
-    implements Converter<DBObject, AnswerOption> {
+public class AnswerOptionReadConverter implements Converter<DBObject, AnswerOption> {
   // lacks validation
   @SuppressWarnings("unchecked")
   @Override
@@ -21,11 +20,11 @@ public class AnswerOptionReadConverter
 
     AnswerOption ao;
     if (source.containsField("answerPool")) {
-      ao = new AnswerOption.Builder(source.get("option").toString()).build();
-    } else {
-      //unchecked for casting to List<String>
+      // unchecked for casting to List<String>
       ao = new AnswerOption.Builder(source.get("option").toString())
           .answerPool(((List<String>) source.get("answerPool"))).build();
+    } else {
+      ao = new AnswerOption.Builder(source.get("option").toString()).build();
     }
 
     return ao;

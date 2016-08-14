@@ -20,10 +20,16 @@ public class QaPairReadConverter implements Converter<DBObject, QaPair> {
   // needs validation + case handling
   @Override
   public QaPair convert(DBObject source) {
-    QaPair qaPair = new QaPair.Builder(source.get("question").toString())
-        .answerOption(
-            aorConverter.convert((DBObject) source.get("answerOption")))
-        .answer(source.get("answer").toString()).build();
+    QaPair qaPair;
+
+    if (source.containsField("answerOption")) {
+      qaPair = new QaPair.Builder(source.get("question").toString())
+          .answerOption(aorConverter.convert((DBObject) source.get("answerOption")))
+          .answer(source.get("answer").toString()).build();
+    } else {
+      qaPair = new QaPair.Builder(source.get("question").toString())
+          .answer(source.get("answer").toString()).build();
+    }
     return qaPair;
   }
 

@@ -36,7 +36,6 @@ public class FlybaseService extends SimpleCrudApiService {
     Flybase flybase = new Flybase.Builder(request.get("name"))
         .description(request.get("description")).createTime(ZonedDateTime.now()).build();
     Flybase resultFlybase = flybaseRepo.save(flybase);
-    System.out.println(resultFlybase);
     return gson.toJson(resultFlybase);
   }
 
