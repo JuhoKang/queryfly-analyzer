@@ -5,15 +5,16 @@ import java.util.Map;
 
 import com.google.common.base.Splitter;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
 import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
-
+import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_METHOD;
 /**
  * Abstract Class for writing a simple {@link ApiService}.<br>
  * Extend this class and implement get,post,delete,update features<br>
  * If you don't want to use one of those methods throw a {@link RequestParamException}
  * 
- * @author MNDCERT
+ * @author Juho Kang
  *
  */
 public abstract class SimpleCrudApiService implements CrudApiService {
@@ -21,7 +22,7 @@ public abstract class SimpleCrudApiService implements CrudApiService {
   @Override
   public String serve(Map<String, String> request) throws ServiceException, RequestParamException {
 
-    String httpMethod = request.get("REQUEST_METHOD");
+    String httpMethod = request.get(REQUEST_METHOD);
     String result = "";
     switch (httpMethod) {
       case "POST":
@@ -48,17 +49,17 @@ public abstract class SimpleCrudApiService implements CrudApiService {
 
   /**
    * util method to split the requested uri.<br>
-   * ex) /fly/stat --> 0 : fly 1 : stat<br>
+   * ex) /fly/stat?name=abc --> 0 : fly 1 : stat<br>
    * this method works only for uris which start with a "/"
    * 
    * @param requestUri
    * @return
    */
-  protected List<String> splitRequestUri(String requestUri) {
+  protected List<String> getSplittedPath(String requestUri) {
     // get rid of the first "/"
-    String uri = requestUri.substring(1);
+    String uri = new QueryStringDecoder(requestUri).path().substring(1);
     List<String> result = Splitter.onPattern("/").splitToList(uri);
-    
+
     // uriElements[0] is fly.
     return result;
   }

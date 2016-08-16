@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /**
  * User Builder to build this object.
  * 
- * @author mndcert
+ * @author Juho Kang
  *
  */
 public class Fly {

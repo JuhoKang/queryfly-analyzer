@@ -13,6 +13,11 @@ import kr.ec.queryfly.analyzer.data.service.FlyRepository;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.util.GsonUtil;
 
+import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_METHOD;
+import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_URI;
+import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_POST;
+import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_GET;
+
 @Service("flyApiService")
 public class FlyApiService extends SimpleCrudApiService {
 
@@ -25,7 +30,7 @@ public class FlyApiService extends SimpleCrudApiService {
   @Override
   public String whenGet(Map<String, String> request) throws RequestParamException {
 
-    List<String> uriElements = splitRequestUri(request.get(ApiRequestHandler.REQUEST_URI));
+    List<String> uriElements = getSplittedPath(request.get(REQUEST_URI));
 
     if (uriElements.size() == 2) {
       String flyId = uriElements.get(1);
@@ -35,6 +40,7 @@ public class FlyApiService extends SimpleCrudApiService {
       String flyId = uriElements.get(1);
       String operation = uriElements.get(2);
       if (operation.equals("stat")) {
+        // TODO
         // do the stat thing.
         return null;
       } else {
@@ -47,14 +53,14 @@ public class FlyApiService extends SimpleCrudApiService {
 
   @Override
   public String whenPost(Map<String, String> request) throws RequestParamException {
-    if (!request.containsKey("flybase_key")) {
+    if (!request.containsKey(PREFIX_POST+"flybase_key")) {
       throw new RequestParamException("flybase_key is null");
-    } else if (!request.containsKey("content")) {
+    } else if (!request.containsKey(PREFIX_POST+"content")) {
       throw new RequestParamException("content is null");
     }
 
-    String contentJson = request.get("content");
-    ObjectId flybaseId = new ObjectId(request.get("flybase_key"));
+    String contentJson = request.get(PREFIX_POST + "content");
+    ObjectId flybaseId = new ObjectId(request.get(PREFIX_POST + "flybase_key"));
 
     Fly contentFly = gson.getGson().fromJson(contentJson, Fly.class);
     System.out.println(contentFly);

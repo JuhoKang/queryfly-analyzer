@@ -11,6 +11,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +30,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
@@ -36,7 +38,7 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.util.CharsetUtil;
-import kr.ec.queryfly.analyzer.util.JsonHttpStatus;
+import kr.ec.queryfly.analyzer.util.JsonResult;
 import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
 
@@ -45,6 +47,10 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
   public static final String REQUEST_URI = "REQUEST_URI";
 
   public static final String REQUEST_METHOD = "REQUEST_METHOD";
+
+  public static final String PREFIX_POST = "post:";
+
+  public static final String PREFIX_GET = "get:";
 
   private static final Logger logger = LoggerFactory.getLogger(ApiRequestHandler.class);
 
@@ -89,6 +95,7 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
 
       reqData.put(REQUEST_URI, request.uri());
       reqData.put(REQUEST_METHOD, request.method().name());
+      readGetParamData(request.uri());
     }
 
     // Request content 처리.
@@ -105,13 +112,12 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
       try {
         apiResult = service.serve(reqData);
       } catch (ServiceException e) {
-        apiResult = new JsonHttpStatus().getJsonStatus(501);
-        e.printStackTrace();
+        apiResult = new JsonResult().httpResult(501, e.getMessage());
       } catch (RequestParamException e) {
-        apiResult = new JsonHttpStatus().getJsonStatus(400);
-        e.printStackTrace();
+        apiResult = new JsonResult().httpResult(400, e.getMessage());
       } catch (Exception e) {
-        apiResult = new JsonHttpStatus().getJsonStatus(500);
+        apiResult = new JsonResult().httpResult(500, e.getMessage());
+        e.printStackTrace();
       } finally {
 
         reqData.clear();
@@ -130,6 +136,21 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
     request = null;
   }
 
+  /**
+   * reads query string and puts the data into reqData.<br>
+   * It doesn't accept multiple values to be associated with a single field. only the first values
+   * will be accepted.
+   * 
+   * @param requestUri
+   */
+  private void readGetParamData(String requestUri) {
+    QueryStringDecoder decoder = new QueryStringDecoder(requestUri);
+    Map<String, List<String>> paramMap = decoder.parameters();
+    for (Map.Entry<String, List<String>> entry : paramMap.entrySet()) {
+      reqData.put(PREFIX_GET + entry.getKey(), entry.getValue().get(0));
+    }
+  }
+
   private void readPostData() {
     HttpPostRequestDecoder decoder = null;
     try {
@@ -138,7 +159,7 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
           .filter(data -> data.getHttpDataType() == HttpDataType.Attribute)
           .map(Attribute.class::cast).forEach(attribute -> {
             try {
-              reqData.put(attribute.getName(), attribute.getValue());
+              reqData.put(PREFIX_POST + attribute.getName(), attribute.getValue());
             } catch (IOException e) {
               logger.error("BODY Attribute: " + attribute.getHttpDataType().name(), e);
               e.printStackTrace();

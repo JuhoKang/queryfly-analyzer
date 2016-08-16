@@ -7,7 +7,7 @@ import kr.ec.queryfly.analyzer.config.AppServerBootstrapper;
 import kr.ec.queryfly.analyzer.config.AppServerContextConfig;
 
 /**
- * Hello world!
+ * Main
  *
  */
 public class AppServerMain {
