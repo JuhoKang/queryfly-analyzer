@@ -5,6 +5,7 @@ import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_POST;
 import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_URI;
 
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,11 +22,13 @@ import kr.ec.queryfly.analyzer.data.service.FlyRepository;
 import kr.ec.queryfly.analyzer.data.service.FlybaseRepository;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.model.Flybase;
+import kr.ec.queryfly.analyzer.model.QaPair;
 import kr.ec.queryfly.analyzer.util.GsonUtil;
 import kr.ec.queryfly.analyzer.util.JsonResult;
 
 /**
  * needs further refactoring
+ * 
  * @author Juho Kang
  *
  */
@@ -44,14 +47,15 @@ public class FlybaseApiService extends SimpleCrudApiService {
   @Override
   public String whenGet(Map<String, String> request) throws RequestParamException {
     List<String> uriElements = getSplittedPath(request.get(REQUEST_URI));
-    for (Map.Entry<String, String> entry : request.entrySet()) {
-      System.out.println(entry.getKey() + "/" + entry.getValue());
-    }
+    /*
+     * for (Map.Entry<String, String> entry : request.entrySet()) {
+     * System.out.println(entry.getKey() + "/" + entry.getValue()); }
+     */
 
-    //default value
+    // default value
     int page = 0;
     int perPage = 30;
-    
+
     if (request.containsKey(PREFIX_GET + "page")) {
       // pagination is zero-based.
       page = Integer.parseInt(request.get(PREFIX_GET + "page")) - 1;
@@ -60,10 +64,7 @@ public class FlybaseApiService extends SimpleCrudApiService {
       perPage = Integer.parseInt(request.get(PREFIX_GET + "per_page"));
     }
 
-    for (String s : uriElements) {
-      System.out.println(s);
-    }
-
+    // ("/flybase")
     if (uriElements.size() == 1) {
       Page<Flybase> flybasePage = flybaseRepo.findAll(new PageRequest(page, perPage));
       if (!flybasePage.hasContent()) {
@@ -72,20 +73,62 @@ public class FlybaseApiService extends SimpleCrudApiService {
 
       return gson.toJson(ImmutableList.copyOf(flybasePage));
 
+      // ("/flybase/{id}")
     } else if (uriElements.size() == 2) {
-      String id = uriElements.get(1);
+      String flybaseId = uriElements.get(1);
+      if (!ObjectId.isValid(flybaseId)) {
+        throw new RequestParamException("not a valid flybase_key.");
+      }
+
       Page<Fly> flyPage =
-          flyRepo.findByFlybaseId(new ObjectId(id), new PageRequest(page, perPage));
+          flyRepo.findByFlybaseId(new ObjectId(flybaseId), new PageRequest(page, perPage));
+
       if (!flyPage.hasContent()) {
         return new JsonResult().noValue();
       }
-
       return gson.toJson(ImmutableList.copyOf(flyPage));
+
+      // ("/flybase/{id}/stat")
+      // ("/flybase/{id}/query")
+    } else if (uriElements.size() == 3) {
+      String flybaseId = uriElements.get(1);
+      String operation = uriElements.get(2);
+
+      if (!ObjectId.isValid(flybaseId)) {
+        throw new RequestParamException("not a valid flybase_key.");
+      }
+
+      if (operation.equals("stat")) {
+
+        Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseId), new PageRequest(0, 200));
+        Map<String, String> result = new HashMap<String, String>();
+        for (Fly e : flies) {
+          for (QaPair pair : e.getQaPairs()) {
+            if (result.containsKey(pair.getQuestion() + "#%$" + pair.getAnswer())) {
+              String num = result.get(pair.getQuestion() + "#%$" + pair.getAnswer());
+              int process = Integer.parseInt(num);
+              process++;
+              result.put(pair.getQuestion() + "#%$" + pair.getAnswer(), "" + process);
+            } else {
+              result.put(pair.getQuestion() + "#%$" + pair.getAnswer(), "1");
+            }
+          }
+
+        }
+
+        for (Map.Entry<String, String> entry : result.entrySet()) {
+          System.out.println(entry.getKey() + "/" + entry.getValue());
+        }
+
+      } else if (operation.equals("query")) {
+
+      } else {
+        throw new RequestParamException("no such operation for flybase.");
+      }
+    } else {
+      throw new RequestParamException("not a valid api request for flybase.");
     }
-
-    List<Flybase> flybaseList = flybaseRepo.findAll();
-
-    return gson.toJson(flybaseList);
+    return new JsonResult().noValue();
   }
 
   @Override
@@ -115,6 +158,10 @@ public class FlybaseApiService extends SimpleCrudApiService {
     return null;
   }
 
+
+  private void statCalculation() {
+
+  }
 
 
 }
