@@ -1,6 +1,9 @@
 package kr.ec.queryfly.analyzer.core;
 
+import java.util.List;
 import java.util.Map;
+
+import com.google.common.base.Splitter;
 
 import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
@@ -16,8 +19,7 @@ import kr.ec.queryfly.analyzer.web.service.ServiceException;
 public abstract class SimpleCrudApiService implements CrudApiService {
 
   @Override
-  public String serve(Map<String, String> request)
-      throws ServiceException, RequestParamException {
+  public String serve(Map<String, String> request) throws ServiceException, RequestParamException {
 
     String httpMethod = request.get("REQUEST_METHOD");
     String result = "";
@@ -41,6 +43,23 @@ public abstract class SimpleCrudApiService implements CrudApiService {
     if (result.equals("")) {
       throw new UnknownError();
     }
+    return result;
+  }
+
+  /**
+   * util method to split the requested uri.<br>
+   * ex) /fly/stat --> 0 : fly 1 : stat<br>
+   * this method works only for uris which start with a "/"
+   * 
+   * @param requestUri
+   * @return
+   */
+  protected List<String> splitRequestUri(String requestUri) {
+    // get rid of the first "/"
+    String uri = requestUri.substring(1);
+    List<String> result = Splitter.onPattern("/").splitToList(uri);
+    
+    // uriElements[0] is fly.
     return result;
   }
 

@@ -7,16 +7,14 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Splitter;
-
 import kr.ec.queryfly.analyzer.core.ApiRequestHandler;
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 import kr.ec.queryfly.analyzer.data.service.FlyRepository;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.util.GsonUtil;
 
-@Service("flyService")
-public class FlyService extends SimpleCrudApiService {
+@Service("flyApiService")
+public class FlyApiService extends SimpleCrudApiService {
 
   @Autowired
   FlyRepository flyRepo;
@@ -26,14 +24,8 @@ public class FlyService extends SimpleCrudApiService {
 
   @Override
   public String whenGet(Map<String, String> request) throws RequestParamException {
-    String uri = request.get(ApiRequestHandler.REQUEST_URI);
-    //get rid of the first "/"
-    uri = uri.substring(1);
-    List<String> uriElements =Splitter.onPattern("/").splitToList(uri);
-    // uriElements[0] is fly.
-    for(String e : uriElements){
-      System.out.println("element : "+e);
-    }
+
+    List<String> uriElements = splitRequestUri(request.get(ApiRequestHandler.REQUEST_URI));
 
     if (uriElements.size() == 2) {
       String flyId = uriElements.get(1);
@@ -45,11 +37,12 @@ public class FlyService extends SimpleCrudApiService {
       if (operation.equals("stat")) {
         // do the stat thing.
         return null;
+      } else {
+        throw new RequestParamException();
       }
     } else {
       throw new RequestParamException();
     }
-    return null;
   }
 
   @Override

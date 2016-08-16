@@ -5,6 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import kr.ec.queryfly.analyzer.model.Flybase;
 
-public interface FlybaseRepository extends MongoRepository<Flybase, ObjectId>, CustomFlyRepository{
+public interface FlybaseRepository extends MongoRepository<Flybase, ObjectId>, CustomFlybaseRepository{
 
 }

@@ -44,9 +44,9 @@ public class ServiceDispatcher {
 
   private static String findService(String entry) {
     if (entry.equals("flybase")) {
-      return "flybaseService";
+      return "flybaseApiService";
     } else if (entry.equals("fly")) {
-      return "flyService";
+      return "flyApiService";
     } else {
       return "notFound";
     }

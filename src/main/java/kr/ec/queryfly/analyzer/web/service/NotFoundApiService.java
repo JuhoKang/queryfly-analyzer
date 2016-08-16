@@ -10,7 +10,7 @@ import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 
 
 @Service("notFound")
-public class DefaultApiService extends SimpleCrudApiService {
+public class NotFoundApiService extends SimpleCrudApiService {
 
   @Override
   public String whenGet(Map<String, String> request)

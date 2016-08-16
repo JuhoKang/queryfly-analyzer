@@ -37,12 +37,13 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDec
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.util.CharsetUtil;
 import kr.ec.queryfly.analyzer.util.JsonHttpStatus;
+import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
 
 public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessage> {
 
   public static final String REQUEST_URI = "REQUEST_URI";
-  
+
   public static final String REQUEST_METHOD = "REQUEST_METHOD";
 
   private static final Logger logger = LoggerFactory.getLogger(ApiRequestHandler.class);
@@ -106,10 +107,13 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
       } catch (ServiceException e) {
         apiResult = new JsonHttpStatus().getJsonStatus(501);
         e.printStackTrace();
+      } catch (RequestParamException e) {
+        apiResult = new JsonHttpStatus().getJsonStatus(400);
+        e.printStackTrace();
       } catch (Exception e) {
         apiResult = new JsonHttpStatus().getJsonStatus(500);
-        e.printStackTrace();
       } finally {
+
         reqData.clear();
       }
 
