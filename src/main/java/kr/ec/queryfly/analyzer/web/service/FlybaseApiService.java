@@ -35,6 +35,8 @@ import kr.ec.queryfly.analyzer.util.JsonResult;
 @Service("flybaseApiService")
 public class FlybaseApiService extends SimpleCrudApiService {
 
+  private final static String Q_A_SEPERATOR = "#%$";
+
   @Autowired
   FlybaseRepository flybaseRepo;
 
@@ -101,22 +103,38 @@ public class FlybaseApiService extends SimpleCrudApiService {
       if (operation.equals("stat")) {
 
         Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseId), new PageRequest(0, 200));
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, Integer> resultSelect = new HashMap<String, Integer>();
+        Map<String, Integer> resultMulti = new HashMap<String, Integer>();
         for (Fly e : flies) {
           for (QaPair pair : e.getQaPairs()) {
-            if (result.containsKey(pair.getQuestion() + "#%$" + pair.getAnswer())) {
-              String num = result.get(pair.getQuestion() + "#%$" + pair.getAnswer());
-              int process = Integer.parseInt(num);
-              process++;
-              result.put(pair.getQuestion() + "#%$" + pair.getAnswer(), "" + process);
+            if (pair.getAnswerOption().getOption().startsWith("select-")) {
+              if (resultSelect.containsKey(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer())) {
+                int num = resultSelect.get(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer());
+                num++;
+                resultSelect.put(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer(), num);
+              } else {
+                resultSelect.put(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer(), 1);
+              }
+            } else if (pair.getAnswerOption().getOption().startsWith("multi-")) {
+              if (resultMulti.containsKey(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer())) {
+                int num = resultMulti.get(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer());
+                num++;
+                resultMulti.put(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer(), num);
+              } else {
+                resultMulti.put(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer(), 1);
+              }
             } else {
-              result.put(pair.getQuestion() + "#%$" + pair.getAnswer(), "1");
+              // short, long
             }
+
           }
 
         }
 
-        for (Map.Entry<String, String> entry : result.entrySet()) {
+        for (Map.Entry<String, Integer> entry : resultSelect.entrySet()) {
+          System.out.println(entry.getKey() + "/" + entry.getValue());
+        }
+        for (Map.Entry<String, Integer> entry : resultMulti.entrySet()) {
           System.out.println(entry.getKey() + "/" + entry.getValue());
         }
 
