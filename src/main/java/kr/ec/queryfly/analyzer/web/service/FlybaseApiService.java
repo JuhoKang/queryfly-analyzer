@@ -5,6 +5,7 @@ import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_POST;
 import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_URI;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,14 +16,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 import kr.ec.queryfly.analyzer.data.service.FlyRepository;
 import kr.ec.queryfly.analyzer.data.service.FlybaseRepository;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.model.Flybase;
-import kr.ec.queryfly.analyzer.model.QaPair;
+import kr.ec.queryfly.analyzer.stat.FlybaseAnalyzer;
 import kr.ec.queryfly.analyzer.util.GsonUtil;
 import kr.ec.queryfly.analyzer.util.JsonResult;
 
@@ -35,16 +39,22 @@ import kr.ec.queryfly.analyzer.util.JsonResult;
 @Service("flybaseApiService")
 public class FlybaseApiService extends SimpleCrudApiService {
 
-  private final static String Q_A_SEPERATOR = "#%$";
+  private final FlybaseRepository flybaseRepo;
+
+  private final FlyRepository flyRepo;
+
+  private final GsonUtil gson;
+
+  private final FlybaseAnalyzer analyzer;
 
   @Autowired
-  FlybaseRepository flybaseRepo;
-
-  @Autowired
-  FlyRepository flyRepo;
-
-  @Autowired
-  GsonUtil gson;
+  public FlybaseApiService(FlybaseRepository flybaseRepo, FlyRepository flyRepo, GsonUtil gson,
+      FlybaseAnalyzer analyzer) {
+    this.flybaseRepo = flybaseRepo;
+    this.flyRepo = flyRepo;
+    this.gson = gson;
+    this.analyzer = analyzer;
+  }
 
   @Override
   public String whenGet(Map<String, String> request) throws RequestParamException {
@@ -68,6 +78,7 @@ public class FlybaseApiService extends SimpleCrudApiService {
 
     // ("/flybase")
     if (uriElements.size() == 1) {
+      System.out.println("user in");
       Page<Flybase> flybasePage = flybaseRepo.findAll(new PageRequest(page, perPage));
       if (!flybasePage.hasContent()) {
         return new JsonResult().noValue();
@@ -103,40 +114,8 @@ public class FlybaseApiService extends SimpleCrudApiService {
       if (operation.equals("stat")) {
 
         Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseId), new PageRequest(0, 200));
-        Map<String, Integer> resultSelect = new HashMap<String, Integer>();
-        Map<String, Integer> resultMulti = new HashMap<String, Integer>();
-        for (Fly e : flies) {
-          for (QaPair pair : e.getQaPairs()) {
-            if (pair.getAnswerOption().getOption().startsWith("select-")) {
-              if (resultSelect.containsKey(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer())) {
-                int num = resultSelect.get(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer());
-                num++;
-                resultSelect.put(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer(), num);
-              } else {
-                resultSelect.put(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer(), 1);
-              }
-            } else if (pair.getAnswerOption().getOption().startsWith("multi-")) {
-              if (resultMulti.containsKey(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer())) {
-                int num = resultMulti.get(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer());
-                num++;
-                resultMulti.put(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer(), num);
-              } else {
-                resultMulti.put(pair.getQuestion() + Q_A_SEPERATOR + pair.getAnswer(), 1);
-              }
-            } else {
-              // short, long
-            }
 
-          }
-
-        }
-
-        for (Map.Entry<String, Integer> entry : resultSelect.entrySet()) {
-          System.out.println(entry.getKey() + "/" + entry.getValue());
-        }
-        for (Map.Entry<String, Integer> entry : resultMulti.entrySet()) {
-          System.out.println(entry.getKey() + "/" + entry.getValue());
-        }
+        return rawStatToJson(analyzer.analyze(flies));
 
       } else if (operation.equals("query")) {
 
@@ -177,8 +156,42 @@ public class FlybaseApiService extends SimpleCrudApiService {
   }
 
 
-  private void statCalculation() {
+  private String rawStatToJson(Map<String, String> rawStat) {
+    JsonObject obj = new JsonObject();
+    JsonArray array = new JsonArray();
+    Map<String, List<String>> temp = new HashMap<String, List<String>>();
+    for (Map.Entry<String, String> entry : rawStat.entrySet()) {
+      List<String> qa = Splitter.on(FlybaseAnalyzer.Q_A_SEPERATOR).splitToList(entry.getKey());
+      String q = qa.get(0);
+      String a = qa.get(1);
+      if (!temp.containsKey(q)) {
+        List<String> templist = new ArrayList<String>();
+        templist.add(a + FlybaseAnalyzer.Q_A_SEPERATOR + entry.getValue());
+        temp.put(q, templist);
+      } else {
+        List<String> templist = temp.get(q);
+        templist.add(a + FlybaseAnalyzer.Q_A_SEPERATOR + entry.getValue());
+        temp.put(q, templist);
+      }
+    }
 
+    for (Map.Entry<String, List<String>> entry : temp.entrySet()) {
+      JsonObject tempObj = new JsonObject();
+      tempObj.addProperty("question", entry.getKey());
+      JsonArray tempArray = new JsonArray();
+      for (String ac : entry.getValue()) {
+        JsonObject answerCount = new JsonObject();
+        List<String> splitted = Splitter.on(FlybaseAnalyzer.Q_A_SEPERATOR).splitToList(ac);
+        answerCount.addProperty("answer", splitted.get(0));
+        answerCount.addProperty("count", splitted.get(1));
+        tempArray.add(answerCount);
+      }
+      tempObj.add("answerCounts", tempArray);
+      array.add(tempObj);
+    }
+    obj.add("qaStats", array);
+
+    return obj.toString();
   }
 
 

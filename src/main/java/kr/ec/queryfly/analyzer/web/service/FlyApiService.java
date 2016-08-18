@@ -1,5 +1,8 @@
 package kr.ec.queryfly.analyzer.web.service;
 
+import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_POST;
+import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_URI;
+
 import java.util.List;
 import java.util.Map;
 
@@ -7,25 +10,24 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import kr.ec.queryfly.analyzer.core.ApiRequestHandler;
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 import kr.ec.queryfly.analyzer.data.service.FlyRepository;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.util.GsonUtil;
 
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_METHOD;
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_URI;
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_POST;
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_GET;
-
 @Service("flyApiService")
 public class FlyApiService extends SimpleCrudApiService {
 
-  @Autowired
-  FlyRepository flyRepo;
+
+  private final FlyRepository flyRepo;
+
+  private final GsonUtil gson;
 
   @Autowired
-  GsonUtil gson;
+  public FlyApiService(FlyRepository flyRepo, GsonUtil gson) {
+    this.flyRepo = flyRepo;
+    this.gson = gson;
+  }
 
   @Override
   public String whenGet(Map<String, String> request) throws RequestParamException {
@@ -53,9 +55,9 @@ public class FlyApiService extends SimpleCrudApiService {
 
   @Override
   public String whenPost(Map<String, String> request) throws RequestParamException {
-    if (!request.containsKey(PREFIX_POST+"flybase_key")) {
+    if (!request.containsKey(PREFIX_POST + "flybase_key")) {
       throw new RequestParamException("flybase_key is null");
-    } else if (!request.containsKey(PREFIX_POST+"content")) {
+    } else if (!request.containsKey(PREFIX_POST + "content")) {
       throw new RequestParamException("content is null");
     }
 

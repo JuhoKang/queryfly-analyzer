@@ -19,8 +19,13 @@ import com.mongodb.MongoClient;
 @EnableMongoRepositories(basePackages = "kr.ec.queryfly.analyzer.data.service")
 public class MongoConfig extends AbstractMongoConfiguration {
 
+
+  private final ApplicationContext springContext;
+
   @Autowired
-  private ApplicationContext springContext;
+  public MongoConfig(ApplicationContext springContext) {
+    this.springContext = springContext;
+  }
 
   @Override
   protected String getDatabaseName() {
@@ -47,8 +52,7 @@ public class MongoConfig extends AbstractMongoConfiguration {
      */
     List<Object> conversions = new ArrayList<Object>(
         springContext.getBeansWithAnnotation(WritingConverter.class).values());
-    conversions.addAll(
-        springContext.getBeansWithAnnotation(ReadingConverter.class).values());
+    conversions.addAll(springContext.getBeansWithAnnotation(ReadingConverter.class).values());
     return new CustomConversions(conversions);
   }
 
