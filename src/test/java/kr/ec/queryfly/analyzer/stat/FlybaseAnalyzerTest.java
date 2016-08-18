@@ -36,7 +36,7 @@ public class FlybaseAnalyzerTest {
 
     List<Fly> flies = new ArrayList<>();
 
-    analyzer.analyze(flies);
+    analyzer.analyzeStat(flies);
 
   }
 

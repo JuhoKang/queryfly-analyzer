@@ -114,19 +114,24 @@ public class FlybaseApiService extends SimpleCrudApiService {
 
       if (operation.equals("stat")) {
 
+        // should change pageRequestThing
         Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseId), new PageRequest(0, 200));
 
-        return rawStatToJson(analyzer.analyze(flies));
+        return rawStatToJson(analyzer.analyzeStat(flies));
 
       } else if (operation.equals("query")) {
+        
+        Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseId), new PageRequest(0, 200));
 
+        return gson.toJson(analyzer.getQueryInfo(flies));
+      
       } else {
         throw new RequestParamException("no such operation for flybase.");
       }
     } else {
       throw new RequestParamException("not a valid api request for flybase.");
     }
-    return new JsonResult().noValue();
+    //return new JsonResult().noValue();
   }
 
   @Override

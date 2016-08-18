@@ -22,11 +22,31 @@ import kr.ec.queryfly.analyzer.model.QaPair;
 @Component
 public class FlybaseAnalyzer {
 
-  public Map<String, List<AcPair>> analyze(Iterable<Fly> flies) {
+  public Map<String, List<AcPair>> analyzeStat(Iterable<Fly> flies) {
 
     return sortToQACPairs(calcQaPairs(flies));
 
   }
+
+  public Map<QaPair, Integer> getQueryInfo(Iterable<Fly> flies) {
+
+    Map<QaPair, Integer> result = new HashMap<QaPair, Integer>();
+
+    for (Fly e : flies) {
+      for (QaPair pair : e.getQaPairs()) {
+        if (result.containsKey(pair)) {
+          int num = result.get(pair);
+          num++;
+          result.put(pair, num);
+        } else {
+          result.put(pair, 1);
+        }
+      }
+    }
+    return result;
+  }
+
+
 
   // need algorithm when there are no options.
   public Map<QaPair, Integer> calcQaPairs(Iterable<Fly> flies) {
@@ -35,7 +55,8 @@ public class FlybaseAnalyzer {
 
     for (Fly e : flies) {
       for (QaPair pair : e.getQaPairs()) {
-        if (pair.getAnswerOption().getOption().startsWith("select-")) {
+        String option = pair.getAnswerOption().getOption();
+        if (option.startsWith("select-")) {
           if (result.containsKey(pair)) {
             int num = result.get(pair);
             num++;
@@ -43,7 +64,7 @@ public class FlybaseAnalyzer {
           } else {
             result.put(pair, 1);
           }
-        } else if (pair.getAnswerOption().getOption().startsWith("multi-")) {
+        } else if (option.startsWith("multi-")) {
           if (result.containsKey(pair)) {
             int num = result.get(pair);
             num++;
