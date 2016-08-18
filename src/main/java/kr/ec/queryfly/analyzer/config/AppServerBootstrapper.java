@@ -18,17 +18,20 @@ import io.netty.handler.logging.LoggingHandler;
 @Component
 public class AppServerBootstrapper {
 
-  @Autowired
-  @Qualifier("tcpSocketAddress")
-  private InetSocketAddress address;
+  private final InetSocketAddress address;
+
+  private final int workerThreadCount;
+
+  private final int bossThreadCount;
 
   @Autowired
-  @Qualifier("workerThreadCount")
-  private int workerThreadCount;
-
-  @Autowired
-  @Qualifier("bossThreadCount")
-  private int bossThreadCount;
+  public AppServerBootstrapper(@Qualifier("tcpSocketAddress") InetSocketAddress address,
+      @Qualifier("workerThreadCount") int workerThreadCount,
+      @Qualifier("bossThreadCount") int bossThreadCount) {
+    this.address = address;
+    this.workerThreadCount = workerThreadCount;
+    this.bossThreadCount = bossThreadCount;
+  }
 
   public void start() {
     EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -39,8 +42,7 @@ public class AppServerBootstrapper {
 
       ServerBootstrap b = new ServerBootstrap();
       b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-          .handler(new LoggingHandler(LogLevel.INFO))
-          .childHandler(new AppServerInitializer(null));
+          .handler(new LoggingHandler(LogLevel.INFO)).childHandler(new AppServerInitializer(null));
       Channel ch = b.bind(address).sync().channel();
       channelFuture = ch.closeFuture();
       channelFuture.sync();

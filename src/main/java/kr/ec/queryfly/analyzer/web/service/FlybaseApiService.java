@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 import kr.ec.queryfly.analyzer.data.service.FlyRepository;
 import kr.ec.queryfly.analyzer.data.service.FlybaseRepository;
+import kr.ec.queryfly.analyzer.model.AcPair;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.model.Flybase;
 import kr.ec.queryfly.analyzer.stat.FlybaseAnalyzer;
@@ -156,34 +157,18 @@ public class FlybaseApiService extends SimpleCrudApiService {
   }
 
 
-  private String rawStatToJson(Map<String, String> rawStat) {
+  private String rawStatToJson(Map<String, List<AcPair>> rawStat) {
     JsonObject obj = new JsonObject();
     JsonArray array = new JsonArray();
-    Map<String, List<String>> temp = new HashMap<String, List<String>>();
-    for (Map.Entry<String, String> entry : rawStat.entrySet()) {
-      List<String> qa = Splitter.on(FlybaseAnalyzer.Q_A_SEPERATOR).splitToList(entry.getKey());
-      String q = qa.get(0);
-      String a = qa.get(1);
-      if (!temp.containsKey(q)) {
-        List<String> templist = new ArrayList<String>();
-        templist.add(a + FlybaseAnalyzer.Q_A_SEPERATOR + entry.getValue());
-        temp.put(q, templist);
-      } else {
-        List<String> templist = temp.get(q);
-        templist.add(a + FlybaseAnalyzer.Q_A_SEPERATOR + entry.getValue());
-        temp.put(q, templist);
-      }
-    }
 
-    for (Map.Entry<String, List<String>> entry : temp.entrySet()) {
+    for (Map.Entry<String, List<AcPair>> entry : rawStat.entrySet()) {
       JsonObject tempObj = new JsonObject();
       tempObj.addProperty("question", entry.getKey());
       JsonArray tempArray = new JsonArray();
-      for (String ac : entry.getValue()) {
+      for (AcPair pair : entry.getValue()) {
         JsonObject answerCount = new JsonObject();
-        List<String> splitted = Splitter.on(FlybaseAnalyzer.Q_A_SEPERATOR).splitToList(ac);
-        answerCount.addProperty("answer", splitted.get(0));
-        answerCount.addProperty("count", splitted.get(1));
+        answerCount.addProperty("answer", pair.getAnswer());
+        answerCount.addProperty("count", pair.getCount());
         tempArray.add(answerCount);
       }
       tempObj.add("answerCounts", tempArray);

@@ -39,3 +39,4 @@ local.properties
 
 # Java annotation processor (APT)
 .factorypath
+/.apt_generated/

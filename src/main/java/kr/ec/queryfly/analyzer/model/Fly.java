@@ -7,13 +7,14 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document
+
 /**
  * User Builder to build this object.
  * 
  * @author Juho Kang
  *
  */
+@Document
 public class Fly {
 
   @Id
