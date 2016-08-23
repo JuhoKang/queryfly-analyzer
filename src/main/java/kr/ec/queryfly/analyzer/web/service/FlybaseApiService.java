@@ -77,10 +77,8 @@ public class FlybaseApiService extends SimpleCrudApiService {
 
     }
 
-
     // ("/flybase")
     if (uriElements.size() == 1) {
-      System.out.println("user in");
       Page<Flybase> flybasePage = flybaseRepo.findAll(new PageRequest(page, perPage));
       if (!flybasePage.hasContent()) {
         return new JsonResult().noValue();
@@ -127,27 +125,47 @@ public class FlybaseApiService extends SimpleCrudApiService {
         return gson.toJson(analyzer.getQueryInfo(flies));
 
       } else {
-        throw new RequestParamException("no such operation for flybase.");
+        throw new RequestParamException("no such operation for /flybase/{id} GET.");
       }
     } else {
-      throw new RequestParamException("not a valid api request for flybase.");
+      throw new RequestParamException("not a valid api request for /flybase GET.");
     }
     // return new JsonResult().noValue();
   }
 
   @Override
   public String whenPost(ApiRequest request) throws RequestParamException {
+    List<String> uriElements = getSplittedPath(request.getUri());
 
-    if (!request.getPostFormData().containsKey("name")
-        || !request.getPostFormData().containsKey("description")) {
-      throw new RequestParamException();
+
+    // ("/flybase")
+    if (uriElements.size() == 1) {
+      if (!request.getPostFormData().containsKey("name")
+          || !request.getPostFormData().containsKey("description")) {
+        throw new RequestParamException();
+      }
+      Flybase flybase = new Flybase.Builder(request.getPostFormData().get("name"))
+          .description(request.getPostFormData().get("description")).createTime(ZonedDateTime.now())
+          .build();
+      Flybase resultFlybase = flybaseRepo.save(flybase);
+      return gson.toJson(resultFlybase);
+
+      // ("/flybase/{id}")
+    } else if (uriElements.size() == 2) {
+      String flybaseId = uriElements.get(1);
+      if (!ObjectId.isValid(flybaseId)) {
+        throw new RequestParamException("not a valid flybase_key.");
+      }
+      //get csv data.
+
+      return "done";
+
+    } else {
+      throw new RequestParamException("not a valid api request for /flybase POST.");
     }
 
-    Flybase flybase = new Flybase.Builder(request.getPostFormData().get("name"))
-        .description(request.getPostFormData().get("description")).createTime(ZonedDateTime.now())
-        .build();
-    Flybase resultFlybase = flybaseRepo.save(flybase);
-    return gson.toJson(resultFlybase);
+
+
   }
 
   @Override

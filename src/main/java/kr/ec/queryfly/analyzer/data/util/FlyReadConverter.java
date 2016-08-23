@@ -1,5 +1,6 @@
 package kr.ec.queryfly.analyzer.data.util;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,9 +29,18 @@ public class FlyReadConverter implements Converter<DBObject, Fly> {
     List<DBObject> list = (List<DBObject>) source.get("qaPairs");
     List<QaPair> qaPairs =
         list.stream().map(item -> qprConverter.convert(item)).collect(Collectors.toList());
-    Fly fly = new Fly.Builder((ObjectId)source.get("flybaseId"), qaPairs)
-        .id(new ObjectId(source.get("_id").toString())).build();
-    return fly;
+
+    Fly.Builder builder = new Fly.Builder(qaPairs);
+
+    builder = builder.flybaseId((ObjectId) source.get("flybaseId"));
+
+    builder = builder.id(new ObjectId(source.get("_id").toString()));
+
+    if (source.containsField("createTime")) {
+      builder = builder.createTime(ZonedDateTime.parse(source.get("createTime").toString()));
+    }
+
+    return builder.build();
   }
 
 }

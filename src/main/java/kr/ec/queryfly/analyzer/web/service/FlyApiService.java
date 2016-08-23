@@ -67,7 +67,7 @@ public class FlyApiService extends SimpleCrudApiService {
 
     Fly contentFly = gson.getGson().fromJson(contentJson, Fly.class);
     System.out.println(contentFly);
-    Fly fly = new Fly.Builder(flybaseId, contentFly.getQaPairs()).build();
+    Fly fly = new Fly.Builder(contentFly.getQaPairs()).flybaseId(flybaseId).build();
 
     Fly resultFly = flyRepo.save(fly);
 

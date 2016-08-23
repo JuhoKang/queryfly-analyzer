@@ -1,5 +1,6 @@
 package kr.ec.queryfly.analyzer.data.util;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import com.mongodb.DBObject;
 
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.model.QaPair;;
+
 @WritingConverter
 @Component
 public class FlyWriteConverter implements Converter<Fly, DBObject> {
@@ -29,6 +31,10 @@ public class FlyWriteConverter implements Converter<Fly, DBObject> {
     }
 
     dbo.put("flybaseId", source.getFlybaseId());
+
+    if (source.getCreateTime() != null) {
+      dbo.put("flybaseId", source.getCreateTime().format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
+    }
 
     List<DBObject> list = new ArrayList<DBObject>();
     for (QaPair item : source.getQaPairs()) {

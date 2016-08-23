@@ -77,7 +77,7 @@ public class FlybaseAnalyzerTest {
     qaPairs.add(qp11);
     // two adds
 
-    Fly fly1 = new Fly.Builder(new ObjectId(), qaPairs).build();
+    Fly fly1 = new Fly.Builder(qaPairs).flybaseId(new ObjectId()).build();
     List<Fly> flies = new ArrayList<Fly>();
     flies.add(fly1);
 
