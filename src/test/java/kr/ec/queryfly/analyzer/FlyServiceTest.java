@@ -9,13 +9,12 @@ import kr.ec.queryfly.analyzer.config.AppServerContextConfig;
 import kr.ec.queryfly.analyzer.config.MongoConfig;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(
-    classes = {AppServerContextConfig.class, MongoConfig.class})
+@ContextConfiguration(classes = {AppServerContextConfig.class, MongoConfig.class})
 public class FlyServiceTest {
 
   @Test
-  public void testFlyService(){
-      
+  public void testFlyService() {
+
   }
-  
+
 }

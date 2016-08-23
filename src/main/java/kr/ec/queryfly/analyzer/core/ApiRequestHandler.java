@@ -9,6 +9,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +39,7 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDecoderException;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.util.CharsetUtil;
+import kr.ec.queryfly.analyzer.model.ApiRequest;
 import kr.ec.queryfly.analyzer.util.JsonResult;
 import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
@@ -54,6 +56,8 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
 
   private static final Logger logger = LoggerFactory.getLogger(ApiRequestHandler.class);
 
+  private ApiRequest apiReq;
+
   private HttpRequest request;
 
   private static final HttpDataFactory factory =
@@ -63,6 +67,7 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
 
   private static final Set<String> usingHeader = new HashSet<String>();
   static {
+    usingHeader.add("content-type");
   }
 
   @Override
@@ -73,7 +78,6 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpMessage msg) {
-
     // Request header 처리.
     {
       this.request = (HttpRequest) msg;
@@ -82,17 +86,25 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
         send100Continue(ctx);
       }
 
-      // Don't know what this part does.
+
+      QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
+
+      apiReq = new ApiRequest.Builder(decoder.path(), request.method().name()).build();
+
+      // headers
       HttpHeaders headers = request.headers();
-      if (!headers.isEmpty()) {
-        for (Map.Entry<String, String> h : headers) {
-          String key = h.getKey();
-          if (usingHeader.contains(key)) {
-            reqData.put(key, h.getValue());
-          }
+      Map<String, String> headerMap = new HashMap<String, String>();
+      for (Map.Entry<String, String> h : headers) {
+        String key = h.getKey();
+        if (usingHeader.contains(key)) {
+          headerMap.put(key, h.getValue());
         }
       }
-
+      apiReq = ApiRequest.Builder.from(apiReq).headers(headerMap).build();
+      // getparam
+      if (apiReq.getMethod() == "GET") {
+        apiReq = ApiRequest.Builder.from(apiReq).parameters(decoder.parameters()).build();
+      }
       reqData.put(REQUEST_URI, request.uri());
       reqData.put(REQUEST_METHOD, request.method().name());
       readGetParamData(request.uri());
@@ -100,17 +112,26 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
 
     // Request content 처리.
     {
-      readPostData();
+      // read raw content
+      if (apiReq.getHeaders().containsKey("content-type")) {
+        if (apiReq.getHeaders().get("content-type").equals("application/json;")) {
+          apiReq = ApiRequest.Builder.from(apiReq)
+              .postRawData(msg.content().toString(StandardCharsets.UTF_8)).build();
+          // read form-data
+        } else {
+          readPostFormData();
+        }
+      } else {
+        readPostFormData();
+      }
 
       ApiService service = ServiceDispatcher.dispatch(reqData);
       String apiResult = "";
 
-      for (String key : reqData.keySet()) {
-        logger.info("requestMap key : " + key + " value : " + reqData.get(key));
-      }
+      logger.info(apiReq.toString());
 
       try {
-        apiResult = service.serve(reqData);
+        apiResult = service.serve(apiReq);
       } catch (ServiceException e) {
         apiResult = new JsonResult().httpResult(501, e.getMessage());
       } catch (RequestParamException e) {
@@ -119,8 +140,7 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
         apiResult = new JsonResult().httpResult(500, e.getMessage());
         e.printStackTrace();
       } finally {
-
-        reqData.clear();
+        apiReq = null;
       }
 
       if (!writeResponse(msg, ctx, apiResult)) {
@@ -151,15 +171,18 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
     }
   }
 
-  private void readPostData() {
+  private void readPostRawData() {}
+
+  private void readPostFormData() {
     HttpPostRequestDecoder decoder = null;
+    Map<String, String> postData = new HashMap<String, String>();
     try {
       decoder = new HttpPostRequestDecoder(factory, request);
       decoder.getBodyHttpDatas().stream()
           .filter(data -> data.getHttpDataType() == HttpDataType.Attribute)
           .map(Attribute.class::cast).forEach(attribute -> {
             try {
-              reqData.put(PREFIX_POST + attribute.getName(), attribute.getValue());
+              postData.put(attribute.getName(), attribute.getValue());
             } catch (IOException e) {
               logger.error("BODY Attribute: " + attribute.getHttpDataType().name(), e);
               e.printStackTrace();
@@ -179,6 +202,7 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
         decoder.destroy();
       }
     }
+    apiReq = ApiRequest.Builder.from(apiReq).postFormData(postData).build();
   }
 
   private boolean writeResponse(HttpMessage msg, ChannelHandlerContext ctx, String apiResult) {

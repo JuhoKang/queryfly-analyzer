@@ -3,11 +3,9 @@ package kr.ec.queryfly.analyzer.stat;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.net.SyslogAppender;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;

@@ -1,7 +1,6 @@
 package kr.ec.queryfly.analyzer.core;
 
-import java.util.Map;
-
+import kr.ec.queryfly.analyzer.model.ApiRequest;
 import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
 
@@ -21,7 +20,7 @@ public interface ApiService {
    * @throws RequestParamException
    */
 
-  public String serve(Map<String, String> request)
+  public String serve(ApiRequest request)
       throws ServiceException, RequestParamException;
 
 }

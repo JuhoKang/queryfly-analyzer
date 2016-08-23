@@ -46,8 +46,6 @@ public class FlybaseAnalyzer {
     return result;
   }
 
-
-
   // need algorithm when there are no options.
   public Map<QaPair, Integer> calcQaPairs(Iterable<Fly> flies) {
 

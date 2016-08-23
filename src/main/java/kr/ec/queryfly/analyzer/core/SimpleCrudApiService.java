@@ -1,14 +1,13 @@
 package kr.ec.queryfly.analyzer.core;
 
 import java.util.List;
-import java.util.Map;
 
 import com.google.common.base.Splitter;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
+import kr.ec.queryfly.analyzer.model.ApiRequest;
 import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_METHOD;
 /**
  * Abstract Class for writing a simple {@link ApiService}.<br>
  * Extend this class and implement get,post,delete,update features<br>
@@ -20,9 +19,9 @@ import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_METHOD;
 public abstract class SimpleCrudApiService implements CrudApiService {
 
   @Override
-  public String serve(Map<String, String> request) throws ServiceException, RequestParamException {
+  public String serve(ApiRequest request) throws ServiceException, RequestParamException {
 
-    String httpMethod = request.get(REQUEST_METHOD);
+    String httpMethod = request.getMethod();
     String result = "";
     switch (httpMethod) {
       case "POST":

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 import kr.ec.queryfly.analyzer.data.service.FlyRepository;
+import kr.ec.queryfly.analyzer.model.ApiRequest;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.util.GsonUtil;
 
@@ -30,9 +31,9 @@ public class FlyApiService extends SimpleCrudApiService {
   }
 
   @Override
-  public String whenGet(Map<String, String> request) throws RequestParamException {
+  public String whenGet(ApiRequest request) throws RequestParamException {
 
-    List<String> uriElements = getSplittedPath(request.get(REQUEST_URI));
+    List<String> uriElements = getSplittedPath(request.getUri());
 
     if (uriElements.size() == 2) {
       String flyId = uriElements.get(1);
@@ -54,15 +55,15 @@ public class FlyApiService extends SimpleCrudApiService {
   }
 
   @Override
-  public String whenPost(Map<String, String> request) throws RequestParamException {
-    if (!request.containsKey(PREFIX_POST + "flybase_key")) {
+  public String whenPost(ApiRequest request) throws RequestParamException {
+    if (!request.getPostFormData().containsKey("flybase_key")) {
       throw new RequestParamException("flybase_key is null");
-    } else if (!request.containsKey(PREFIX_POST + "content")) {
+    } else if (!request.getPostFormData().containsKey("content")) {
       throw new RequestParamException("content is null");
     }
 
-    String contentJson = request.get(PREFIX_POST + "content");
-    ObjectId flybaseId = new ObjectId(request.get(PREFIX_POST + "flybase_key"));
+    String contentJson = request.getPostFormData().get("content");
+    ObjectId flybaseId = new ObjectId(request.getPostFormData().get("flybase_key"));
 
     Fly contentFly = gson.getGson().fromJson(contentJson, Fly.class);
     System.out.println(contentFly);
@@ -74,13 +75,13 @@ public class FlyApiService extends SimpleCrudApiService {
   }
 
   @Override
-  public String whenPut(Map<String, String> request) throws RequestParamException {
+  public String whenPut(ApiRequest request) throws RequestParamException {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public String whenDelete(Map<String, String> request) throws RequestParamException {
+  public String whenDelete(ApiRequest request) throws RequestParamException {
     // TODO Auto-generated method stub
     return null;
   }

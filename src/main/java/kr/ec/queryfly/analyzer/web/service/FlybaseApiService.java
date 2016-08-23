@@ -5,8 +5,6 @@ import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_POST;
 import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_URI;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -25,6 +22,7 @@ import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 import kr.ec.queryfly.analyzer.data.service.FlyRepository;
 import kr.ec.queryfly.analyzer.data.service.FlybaseRepository;
 import kr.ec.queryfly.analyzer.model.AcPair;
+import kr.ec.queryfly.analyzer.model.ApiRequest;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.model.Flybase;
 import kr.ec.queryfly.analyzer.stat.FlybaseAnalyzer;
@@ -58,8 +56,8 @@ public class FlybaseApiService extends SimpleCrudApiService {
   }
 
   @Override
-  public String whenGet(Map<String, String> request) throws RequestParamException {
-    List<String> uriElements = getSplittedPath(request.get(REQUEST_URI));
+  public String whenGet(ApiRequest request) throws RequestParamException {
+    List<String> uriElements = getSplittedPath(request.getUri());
     /*
      * for (Map.Entry<String, String> entry : request.entrySet()) {
      * System.out.println(entry.getKey() + "/" + entry.getValue()); }
@@ -68,14 +66,17 @@ public class FlybaseApiService extends SimpleCrudApiService {
     // default value
     int page = 0;
     int perPage = 30;
+    if (request.getParameters() != null) {
+      if (request.getParameters().containsKey("page")) {
+        // pagination is zero-based.
+        page = Integer.parseInt(request.getParameters().get("page").get(0)) - 1;
+      }
+      if (request.getParameters().containsKey("per_page")) {
+        perPage = Integer.parseInt(request.getParameters().get("per_page").get(0));
+      }
 
-    if (request.containsKey(PREFIX_GET + "page")) {
-      // pagination is zero-based.
-      page = Integer.parseInt(request.get(PREFIX_GET + "page")) - 1;
     }
-    if (request.containsKey(PREFIX_GET + "per_page")) {
-      perPage = Integer.parseInt(request.get(PREFIX_GET + "per_page"));
-    }
+
 
     // ("/flybase")
     if (uriElements.size() == 1) {
@@ -120,43 +121,43 @@ public class FlybaseApiService extends SimpleCrudApiService {
         return rawStatToJson(analyzer.analyzeStat(flies));
 
       } else if (operation.equals("query")) {
-        
+
         Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseId), new PageRequest(0, 200));
 
         return gson.toJson(analyzer.getQueryInfo(flies));
-      
+
       } else {
         throw new RequestParamException("no such operation for flybase.");
       }
     } else {
       throw new RequestParamException("not a valid api request for flybase.");
     }
-    //return new JsonResult().noValue();
+    // return new JsonResult().noValue();
   }
 
   @Override
-  public String whenPost(Map<String, String> request) throws RequestParamException {
+  public String whenPost(ApiRequest request) throws RequestParamException {
 
-    if (!request.containsKey(PREFIX_POST + "name")
-        || !request.containsKey(PREFIX_POST + "description")) {
+    if (!request.getPostFormData().containsKey("name")
+        || !request.getPostFormData().containsKey("description")) {
       throw new RequestParamException();
     }
 
-    Flybase flybase = new Flybase.Builder(request.get(PREFIX_POST + "name"))
-        .description(request.get(PREFIX_POST + "description")).createTime(ZonedDateTime.now())
+    Flybase flybase = new Flybase.Builder(request.getPostFormData().get("name"))
+        .description(request.getPostFormData().get("description")).createTime(ZonedDateTime.now())
         .build();
     Flybase resultFlybase = flybaseRepo.save(flybase);
     return gson.toJson(resultFlybase);
   }
 
   @Override
-  public String whenPut(Map<String, String> request) throws RequestParamException {
+  public String whenPut(ApiRequest request) throws RequestParamException {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public String whenDelete(Map<String, String> request) throws RequestParamException {
+  public String whenDelete(ApiRequest request) throws RequestParamException {
     // TODO Auto-generated method stub
     return null;
   }

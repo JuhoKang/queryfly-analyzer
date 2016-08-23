@@ -1,6 +1,7 @@
 package kr.ec.queryfly.analyzer.model;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -12,12 +13,14 @@ public class Flybase {
   private final String name;
   private final String description;
   private final ZonedDateTime createTime;
+  private final List<String> keywords;
 
   private Flybase(Builder builder) {
     this.id = builder.id;
     this.name = builder.name;
     this.description = builder.description;
     this.createTime = builder.createTime;
+    this.keywords = builder.keywords;
   }
 
   public ObjectId getId() {
@@ -36,12 +39,17 @@ public class Flybase {
     return createTime;
   }
 
+  public List<String> getKeywords() {
+    return keywords;
+  }
+
   public static class Builder {
 
     private ObjectId id;
     private final String name;
     private String description;
     private ZonedDateTime createTime;
+    private List<String> keywords;
 
     public Builder(String name) {
       if (name == null) {
@@ -62,6 +70,11 @@ public class Flybase {
 
     public Builder createTime(ZonedDateTime createTime) {
       this.createTime = createTime;
+      return this;
+    }
+    
+    public Builder keywords(List<String> keywords){
+      this.keywords = keywords;
       return this;
     }
 

@@ -65,35 +65,35 @@ public class MongoTest {
 
   @Test
   public void testMongo() {
-    flyBaseRepo.deleteAll();
-    flyRepo.deleteAll();
 
-    Flybase fb = new Flybase.Builder("flybase 1").description("description")
-        .createTime(ZonedDateTime.now()).build();
-    Flybase savedFb = flyBaseRepo.save(fb);
+    // flyBaseRepo.deleteAll();
+    // flyRepo.deleteAll();
+    //
+    // Flybase fb = new Flybase.Builder("flybase 1").description("description")
+    // .createTime(ZonedDateTime.now()).build();
+    // Flybase savedFb = flyBaseRepo.save(fb);
+    //
+    // Map<String, String> map = new HashMap<String, String>();
+    // map.put(ApiRequestHandler.REQUEST_METHOD, "POST");
+    // map.put(ApiRequestHandler.REQUEST_URI, "/fly");
+    // map.put(ApiRequestHandler.PREFIX_POST + "flybase_key", savedFb.getId().toHexString());
+    // String case1 = null;
+    // try {
+    // case1 = Files.toString(new File(this.getClass().getResource("/InputCase1").toURI()),
+    // Charsets.UTF_8);
+    // } catch (IOException | URISyntaxException e1) { // TODO Auto-generated catch block
+    // e1.printStackTrace();
+    // }
+    // String[] split = case1.split("&");
+    // for (String s : split) {
+    // map.put(ApiRequestHandler.PREFIX_POST + "content", s);
+    // try {
+    // flyApiService.serve(map);
+    // } catch (ServiceException | RequestParamException e) { // TODO Auto-generated catch block
+    // e.printStackTrace();
+    // }
+    // }
 
-    Map<String, String> map = new HashMap<String, String>();
-    map.put(ApiRequestHandler.REQUEST_METHOD, "POST");
-    map.put(ApiRequestHandler.REQUEST_URI, "/fly");
-    map.put(ApiRequestHandler.PREFIX_POST + "flybase_key", savedFb.getId().toHexString());
-    String case1 = null;
-    try {
-      case1 = Files.toString(new File(this.getClass().getResource("/InputCase1").toURI()),
-          Charsets.UTF_8);
-    } catch (IOException | URISyntaxException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
-    }
-    String[] split = case1.split("&");
-    for (String s : split) {
-      map.put(ApiRequestHandler.PREFIX_POST + "content", s);
-      try {
-        flyApiService.serve(map);
-      } catch (ServiceException | RequestParamException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
 
   }
 

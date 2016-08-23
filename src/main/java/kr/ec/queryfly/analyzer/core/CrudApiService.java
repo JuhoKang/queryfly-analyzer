@@ -1,22 +1,16 @@
 package kr.ec.queryfly.analyzer.core;
 
-import java.util.Map;
-
+import kr.ec.queryfly.analyzer.model.ApiRequest;
 import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 
-public interface CrudApiService extends ApiService{
-  
-  public String whenGet(Map<String, String> request)
-      throws RequestParamException;
+public interface CrudApiService extends ApiService {
 
-  public String whenPost(Map<String, String> request)
-      throws RequestParamException;
+  public String whenGet(ApiRequest request) throws RequestParamException;
 
-  public String whenPut(Map<String, String> request)
-      throws RequestParamException;
+  public String whenPost(ApiRequest request) throws RequestParamException;
 
-  public String whenDelete(Map<String, String> request)
-      throws RequestParamException;
+  public String whenPut(ApiRequest request) throws RequestParamException;
 
+  public String whenDelete(ApiRequest request) throws RequestParamException;
 
 }

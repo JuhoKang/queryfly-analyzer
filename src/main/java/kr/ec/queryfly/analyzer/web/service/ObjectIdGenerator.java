@@ -1,13 +1,12 @@
 package kr.ec.queryfly.analyzer.web.service;
 
-import java.util.Map;
-
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.JsonObject;
 
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
+import kr.ec.queryfly.analyzer.model.ApiRequest;
 
 /**
  * Generates an ObjectId for a Fly<br>
@@ -19,27 +18,24 @@ import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 public class ObjectIdGenerator extends SimpleCrudApiService {
 
   @Override
-  public String whenGet(Map<String, String> request) {
+  public String whenGet(ApiRequest request) {
     JsonObject result = new JsonObject();
     result.addProperty("id", ObjectId.get().toHexString());
     return result.toString();
   }
 
   @Override
-  public String whenPost(Map<String, String> request)
-      throws RequestParamException {
+  public String whenPost(ApiRequest request) throws RequestParamException {
     throw new RequestParamException();
   }
 
   @Override
-  public String whenPut(Map<String, String> request)
-      throws RequestParamException {
+  public String whenPut(ApiRequest request) throws RequestParamException {
     throw new RequestParamException();
   }
 
   @Override
-  public String whenDelete(Map<String, String> request)
-      throws RequestParamException {
+  public String whenDelete(ApiRequest request) throws RequestParamException {
     throw new RequestParamException();
   }
 
