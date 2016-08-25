@@ -1,9 +1,5 @@
 package kr.ec.queryfly.analyzer.web.service;
 
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_GET;
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_POST;
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_URI;
-
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +19,10 @@ import kr.ec.queryfly.analyzer.data.service.FlyRepository;
 import kr.ec.queryfly.analyzer.data.service.FlybaseRepository;
 import kr.ec.queryfly.analyzer.model.AcPair;
 import kr.ec.queryfly.analyzer.model.ApiRequest;
+import kr.ec.queryfly.analyzer.model.CustomMediaType;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.model.Flybase;
+import kr.ec.queryfly.analyzer.stat.CSVtoFliesConverter;
 import kr.ec.queryfly.analyzer.stat.FlybaseAnalyzer;
 import kr.ec.queryfly.analyzer.util.GsonUtil;
 import kr.ec.queryfly.analyzer.util.JsonResult;
@@ -156,15 +154,30 @@ public class FlybaseApiService extends SimpleCrudApiService {
       if (!ObjectId.isValid(flybaseId)) {
         throw new RequestParamException("not a valid flybase_key.");
       }
-      //get csv data.
+      if (!request.getHeaders().containsKey(CustomMediaType.HEADER_CONTENT_TYPE_VALUE)) {
+        throw new RequestParamException("No Content-Type");
+      }
 
-      return "done";
+      if (request.getHeaders().get(CustomMediaType.HEADER_CONTENT_TYPE_VALUE)
+          .contains(CustomMediaType.APPLICATION_CSV_VALUE)) {
+        String csvInput = request.getPostRawData();
+        CSVtoFliesConverter converter = new CSVtoFliesConverter();
+        List<Fly> flies = converter.parse(csvInput, new ObjectId(flybaseId));
+        List<Fly> resultFlies = flyRepo.save(flies);
+        return gson.toJson(resultFlies);
+
+      } else if (request.getHeaders().get(CustomMediaType.HEADER_CONTENT_TYPE_VALUE)
+          .contains(CustomMediaType.APPLICATION_JSON_VALUE)) {
+        // TODO
+        return "";
+
+      } else {
+        throw new RequestParamException("Content-Type which is not supported");
+      }
 
     } else {
       throw new RequestParamException("not a valid api request for /flybase POST.");
     }
-
-
 
   }
 

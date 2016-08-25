@@ -1,10 +1,6 @@
 package kr.ec.queryfly.analyzer.web.service;
 
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.PREFIX_POST;
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_URI;
-
 import java.util.List;
-import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +14,6 @@ import kr.ec.queryfly.analyzer.util.GsonUtil;
 
 @Service("flyApiService")
 public class FlyApiService extends SimpleCrudApiService {
-
 
   private final FlyRepository flyRepo;
 
@@ -35,10 +30,12 @@ public class FlyApiService extends SimpleCrudApiService {
 
     List<String> uriElements = getSplittedPath(request.getUri());
 
+    // fly/{id}
     if (uriElements.size() == 2) {
       String flyId = uriElements.get(1);
       Fly resultFly = flyRepo.findOne(new ObjectId(flyId));
       return gson.toJson(resultFly);
+      // fly/{id}/stat
     } else if (uriElements.size() == 3) {
       String flyId = uriElements.get(1);
       String operation = uriElements.get(2);
@@ -56,17 +53,17 @@ public class FlyApiService extends SimpleCrudApiService {
 
   @Override
   public String whenPost(ApiRequest request) throws RequestParamException {
-    if (!request.getPostFormData().containsKey("flybase_key")) {
+    if (!request.getHeaders().containsKey("flybase_key")) {
       throw new RequestParamException("flybase_key is null");
-    } else if (!request.getPostFormData().containsKey("content")) {
+    } else if (request.getPostRawData() == null) {
       throw new RequestParamException("content is null");
     }
 
-    String contentJson = request.getPostFormData().get("content");
-    ObjectId flybaseId = new ObjectId(request.getPostFormData().get("flybase_key"));
+    String contentJson = request.getPostRawData();
+    ObjectId flybaseId = new ObjectId(request.getHeaders().get("flybase_key"));
 
     Fly contentFly = gson.getGson().fromJson(contentJson, Fly.class);
-    System.out.println(contentFly);
+    // System.out.println(contentFly);
     Fly fly = new Fly.Builder(contentFly.getQaPairs()).flybaseId(flybaseId).build();
 
     Fly resultFly = flyRepo.save(fly);

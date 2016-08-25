@@ -1,7 +1,6 @@
 package kr.ec.queryfly.analyzer.core;
 
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +11,8 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Splitter;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
+import kr.ec.queryfly.analyzer.model.ApiRequest;
 
-import static kr.ec.queryfly.analyzer.core.ApiRequestHandler.REQUEST_URI;
 @Component
 public class ServiceDispatcher {
 
@@ -26,8 +25,8 @@ public class ServiceDispatcher {
 
   protected static Logger logger = LoggerFactory.getLogger(ServiceDispatcher.class);
 
-  public static ApiService dispatch(Map<String, String> requestMap) {
-    String serviceUri = requestMap.get(REQUEST_URI);
+  public static ApiService dispatch(ApiRequest apiReq) {
+    String serviceUri = apiReq.getUri();
     String beanName = null;
     if (serviceUri == null) {
       beanName = "notFound";
@@ -39,10 +38,10 @@ public class ServiceDispatcher {
 
     ApiService service = null;
     try {
-      service = (ApiService) springContext.getBean(beanName, requestMap);
+      service = (ApiService) springContext.getBean(beanName, apiReq);
     } catch (Exception e) {
       e.printStackTrace();
-      service = (ApiService) springContext.getBean("notFound", requestMap);
+      service = (ApiService) springContext.getBean("notFound", apiReq);
     }
 
     return service;
@@ -57,7 +56,7 @@ public class ServiceDispatcher {
       return "notFound";
     }
   }
-  
+
   private static List<String> getSplittedPath(String requestUri) {
     // get rid of the first "/"
     String uri = new QueryStringDecoder(requestUri).path().substring(1);

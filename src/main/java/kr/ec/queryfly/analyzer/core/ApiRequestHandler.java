@@ -11,10 +11,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,19 +37,12 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.ErrorDataDec
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.util.CharsetUtil;
 import kr.ec.queryfly.analyzer.model.ApiRequest;
+import kr.ec.queryfly.analyzer.model.CustomMediaType;
 import kr.ec.queryfly.analyzer.util.JsonResult;
 import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
 
 public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessage> {
-
-  public static final String REQUEST_URI = "REQUEST_URI";
-
-  public static final String REQUEST_METHOD = "REQUEST_METHOD";
-
-  public static final String PREFIX_POST = "post:";
-
-  public static final String PREFIX_GET = "get:";
 
   private static final Logger logger = LoggerFactory.getLogger(ApiRequestHandler.class);
 
@@ -63,12 +53,11 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
   private static final HttpDataFactory factory =
       new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE); // Disk
 
-  private Map<String, String> reqData = new HashMap<String, String>();
 
-  private static final Set<String> usingHeader = new HashSet<String>();
-  static {
-    usingHeader.add("content-type");
-  }
+  /*
+   * private static final Set<String> usingHeader = new HashSet<String>(); static {
+   * usingHeader.add("Content-Type"); }
+   */
 
   @Override
   public void channelReadComplete(ChannelHandlerContext ctx) {
@@ -79,99 +68,98 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpMessage msg) {
     // Request header 처리.
-    {
-      this.request = (HttpRequest) msg;
 
-      if (HttpUtil.is100ContinueExpected(msg)) {
-        send100Continue(ctx);
-      }
+    this.request = (HttpRequest) msg;
 
-
-      QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
-
-      apiReq = new ApiRequest.Builder(decoder.path(), request.method().name()).build();
-
-      // headers
-      HttpHeaders headers = request.headers();
-      Map<String, String> headerMap = new HashMap<String, String>();
-      for (Map.Entry<String, String> h : headers) {
-        String key = h.getKey();
-        if (usingHeader.contains(key)) {
-          headerMap.put(key, h.getValue());
-        }
-      }
-      apiReq = ApiRequest.Builder.from(apiReq).headers(headerMap).build();
-      // getparam
-      if (apiReq.getMethod() == "GET") {
-        apiReq = ApiRequest.Builder.from(apiReq).parameters(decoder.parameters()).build();
-      }
-      reqData.put(REQUEST_URI, request.uri());
-      reqData.put(REQUEST_METHOD, request.method().name());
-      readGetParamData(request.uri());
+    if (HttpUtil.is100ContinueExpected(msg)) {
+      send100Continue(ctx);
     }
+
+    QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
+
+    apiReq = new ApiRequest.Builder(decoder.path(), request.method().name()).build();
+
+    // headers
+    HttpHeaders headers = request.headers();
+    Map<String, String> headerMap = new HashMap<String, String>();
+    for (Map.Entry<String, String> h : headers) {
+      String key = h.getKey();
+      // if (usingHeader.contains(key)) {
+      headerMap.put(key, h.getValue());
+      // }
+    }
+    apiReq = ApiRequest.Builder.from(apiReq).headers(headerMap).build();
+
+    // QueryString Parameter 처리
+    if (apiReq.getMethod().equals("GET")) {
+      apiReq = ApiRequest.Builder.from(apiReq).parameters(decoder.parameters()).build();
+    }
+
+    logger.info("message content" + msg.content().toString(StandardCharsets.UTF_8));
 
     // Request content 처리.
-    {
-      // read raw content
-      if (apiReq.getHeaders().containsKey("content-type")) {
-        if (apiReq.getHeaders().get("content-type").equals("application/json;")) {
-          apiReq = ApiRequest.Builder.from(apiReq)
-              .postRawData(msg.content().toString(StandardCharsets.UTF_8)).build();
-          // read form-data
-        } else {
-          readPostFormData();
-        }
-      } else {
+    if (apiReq.getHeaders().containsKey("Content-Type")) {
+
+      if (apiReq.getHeaders().get(CustomMediaType.HEADER_CONTENT_TYPE_VALUE)
+          .contains(CustomMediaType.APPLICATION_JSON_VALUE)) {
+
+        logger.info("request content-type : application/json");
+        apiReq = ApiRequest.Builder.from(apiReq)
+            .postRawData(msg.content().toString(StandardCharsets.UTF_8)).build();
+
+      } else if (apiReq.getHeaders().get(CustomMediaType.HEADER_CONTENT_TYPE_VALUE)
+          .contains(CustomMediaType.MULTIPART_FORM_DATA_VALUE)) {
+
         readPostFormData();
+
+      } else if (apiReq.getHeaders().get(CustomMediaType.HEADER_CONTENT_TYPE_VALUE)
+          .contains("application/csv")) {
+
+        apiReq = ApiRequest.Builder.from(apiReq)
+            .postRawData(msg.content().toString(StandardCharsets.UTF_8)).build();
+
+      } else {
+
+        logger.info("request content-type : not known type");
+        logger.info("request content-type : "
+            + apiReq.getHeaders().get(CustomMediaType.HEADER_CONTENT_TYPE_VALUE));
+
       }
 
-      ApiService service = ServiceDispatcher.dispatch(reqData);
-      String apiResult = "";
-
-      logger.info(apiReq.toString());
-
-      try {
-        apiResult = service.serve(apiReq);
-      } catch (ServiceException e) {
-        apiResult = new JsonResult().httpResult(501, e.getMessage());
-      } catch (RequestParamException e) {
-        apiResult = new JsonResult().httpResult(400, e.getMessage());
-      } catch (Exception e) {
-        apiResult = new JsonResult().httpResult(500, e.getMessage());
-        e.printStackTrace();
-      } finally {
-        apiReq = null;
-      }
-
-      if (!writeResponse(msg, ctx, apiResult)) {
-        // If keep-alive is off, close the connection once the
-        // content is fully written.
-        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
-      }
-      reset();
+    } else {
+      logger.error("request doesn't have a content-type");
     }
+
+    ApiService service = ServiceDispatcher.dispatch(apiReq);
+    String apiResult = "";
+
+    logger.debug(apiReq.toString());
+
+    try {
+      apiResult = service.serve(apiReq);
+    } catch (ServiceException e) {
+      apiResult = new JsonResult().httpResult(501, e.getMessage());
+    } catch (RequestParamException e) {
+      apiResult = new JsonResult().httpResult(400, e.getMessage());
+    } catch (Exception e) {
+      apiResult = new JsonResult().httpResult(500, e.getMessage());
+      e.printStackTrace();
+    } finally {
+      apiReq = null;
+    }
+
+    if (!writeResponse(msg, ctx, apiResult)) {
+      // If keep-alive is off, close the connection once the
+      // content is fully written.
+      ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+    }
+    reset();
   }
+
 
   private void reset() {
     request = null;
   }
-
-  /**
-   * reads query string and puts the data into reqData.<br>
-   * It doesn't accept multiple values to be associated with a single field. only the first values
-   * will be accepted.
-   * 
-   * @param requestUri
-   */
-  private void readGetParamData(String requestUri) {
-    QueryStringDecoder decoder = new QueryStringDecoder(requestUri);
-    Map<String, List<String>> paramMap = decoder.parameters();
-    for (Map.Entry<String, List<String>> entry : paramMap.entrySet()) {
-      reqData.put(PREFIX_GET + entry.getKey(), entry.getValue().get(0));
-    }
-  }
-
-  private void readPostRawData() {}
 
   private void readPostFormData() {
     HttpPostRequestDecoder decoder = null;
@@ -218,14 +206,12 @@ public class ApiRequestHandler extends SimpleChannelInboundHandler<FullHttpMessa
 
       // Add 'Content-Length' header only for a keep-alive connection.
       response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
-      // Add keep alive header as per:
-      // -
+      // Add keep alive header as per
       // http://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01.html#Connection
       response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 
     }
 
-    // Write the response.
     ctx.write(response);
     return keepAlive;
   }

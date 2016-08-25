@@ -1,14 +1,12 @@
 package kr.ec.queryfly.analyzer.stat;
 
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import org.bson.types.ObjectId;
 
 import com.google.common.base.Splitter;
 
@@ -22,10 +20,10 @@ import kr.ec.queryfly.analyzer.model.QaPair;
  * @author Juho Kang
  *
  */
-public class CSVtoFlybaseConverter {
+public class CSVtoFliesConverter {
 
 
-  public List<Fly> parse(String csv) {
+  public List<Fly> parse(String csv, ObjectId flybaseId) {
 
     List<Fly> result = new ArrayList<Fly>();
 
@@ -45,14 +43,15 @@ public class CSVtoFlybaseConverter {
         qaPairs.add(aPair);
       }
 
-      //LocalDateTime.parse(answers.get(0), format).atZone(ZoneId.of("+09"))
+      // LocalDateTime.parse(answers.get(0), format).atZone(ZoneId.of("+09"))
       // the google form only has local time. converted to UTC+09
       // this part is too buggy. used a turn around
       // http://stackoverflow.com/questions/37287103/why-does-gmt8-fail-to-parse-with-pattern-o-despite-being-copied-straight-ou
-      
-      DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy/MM/dd h:mm:ss a O ", Locale.ENGLISH);
-      Fly fly = new Fly.Builder(qaPairs)
-          .createTime(ZonedDateTime.parse(answers.get(0)+" ", format)).build();
+
+      DateTimeFormatter format =
+          DateTimeFormatter.ofPattern("yyyy/MM/dd h:mm:ss a O ", Locale.ENGLISH);
+      Fly fly = new Fly.Builder(qaPairs).flybaseId(flybaseId)
+          .createTime(ZonedDateTime.parse(answers.get(0) + " ", format)).build();
 
       result.add(fly);
 
@@ -64,12 +63,12 @@ public class CSVtoFlybaseConverter {
 
   private List<String> splitToRows(String csv) {
     String lineSeperator = "\n";
-    if (csv.contains("\n")) {
-      lineSeperator = "\n";
+    if (csv.contains("\r\n")) {
+      lineSeperator = "\r\n";
     } else if (csv.contains("\r")) {
       lineSeperator = "\r";
-    } else if (csv.contains("\r\n")) {
-      lineSeperator = "\r\n";
+    } else if (csv.contains("\n")) {
+      lineSeperator = "\n";
     }
 
     return Splitter.on(lineSeperator).splitToList(csv);

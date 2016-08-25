@@ -1,7 +1,5 @@
 package kr.ec.queryfly.analyzer.web.service;
 
-import java.util.Map;
-
 import org.springframework.stereotype.Service;
 
 import com.google.gson.JsonObject;
