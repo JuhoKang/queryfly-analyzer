@@ -95,7 +95,7 @@ public class FlybaseApiService extends SimpleCrudApiService {
     } else if (uriElements.size() == 2) {
       String flybaseId = uriElements.get(1);
       if (!ObjectId.isValid(flybaseId)) {
-        throw new RequestParamException(msg.getMessage("error.notvalidfbkey", null, Locale.KOREA));
+        throw new RequestParamException(defaultMsg("error.notvalidfbkey"));
       }
 
       Page<Fly> flyPage =
@@ -113,7 +113,7 @@ public class FlybaseApiService extends SimpleCrudApiService {
       String operation = uriElements.get(2);
 
       if (!ObjectId.isValid(flybaseId)) {
-        throw new RequestParamException("not a valid flybase_key.");
+        throw new RequestParamException(defaultMsg("error.notvalidfbkey"));
       }
 
       if (operation.equals("stat")) {
@@ -130,10 +130,11 @@ public class FlybaseApiService extends SimpleCrudApiService {
         return gson.toJson(analyzer.getQueryInfo(flies));
 
       } else {
-        throw new RequestParamException("no such operation for /flybase/{id} GET.");
+        throw new RequestParamException(
+            defaultMsgArg("error.arg.nooperation", "/flybase/{id}/(operation) GET."));
       }
     } else {
-      throw new RequestParamException("not a valid api request for /flybase GET.");
+      throw new RequestParamException(defaultMsgArg("error.arg.notvalidrequest", "/flybase GET"));
     }
     // return new JsonResult().noValue();
   }
@@ -147,7 +148,8 @@ public class FlybaseApiService extends SimpleCrudApiService {
     if (uriElements.size() == 1) {
       if (!request.getPostFormData().containsKey("name")
           || !request.getPostFormData().containsKey("description")) {
-        throw new RequestParamException("필수 POST 파라미터가 빠졌습니다. (name, description)");
+        throw new RequestParamException(
+            defaultMsgArg("error.arg.missingarg", "POSTarg/name, POSTarg/description"));
       }
 
       Flybase.Builder builder = new Flybase.Builder(request.getPostFormData().get("name"))
@@ -172,10 +174,10 @@ public class FlybaseApiService extends SimpleCrudApiService {
     } else if (uriElements.size() == 2) {
       String flybaseId = uriElements.get(1);
       if (!ObjectId.isValid(flybaseId)) {
-        throw new RequestParamException("not a valid flybase_key.");
+        throw new RequestParamException(defaultMsg("error.notvalidfbkey"));
       }
       if (!request.getHeaders().containsKey(CustomMediaType.HEADER_CONTENT_TYPE_VALUE)) {
-        throw new RequestParamException("No Content-Type");
+        throw new RequestParamException(defaultMsg("error.nocontenttype"));
       }
 
       if (request.getHeaders().get(CustomMediaType.HEADER_CONTENT_TYPE_VALUE)
@@ -192,11 +194,11 @@ public class FlybaseApiService extends SimpleCrudApiService {
         return "";
 
       } else {
-        throw new RequestParamException("Content-Type which is not supported");
+        throw new RequestParamException(defaultMsg("error.notsupportedcontenttype"));
       }
 
     } else {
-      throw new RequestParamException("not a valid api request for /flybase POST.");
+      throw new RequestParamException(defaultMsgArg("error.arg.notvalidrequest", "/flybase POST"));
     }
 
   }
@@ -234,6 +236,14 @@ public class FlybaseApiService extends SimpleCrudApiService {
     obj.add("qaStats", array);
 
     return obj.toString();
+  }
+
+  private String defaultMsg(String key) {
+    return msg.getMessage(key, null, Locale.KOREA);
+  }
+
+  private String defaultMsgArg(String key, String arg) {
+    return msg.getMessage(key + arg, null, Locale.KOREA);
   }
 
 

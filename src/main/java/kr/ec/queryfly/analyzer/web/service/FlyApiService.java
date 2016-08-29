@@ -1,9 +1,11 @@
 package kr.ec.queryfly.analyzer.web.service;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
@@ -19,10 +21,13 @@ public class FlyApiService extends SimpleCrudApiService {
 
   private final GsonUtil gson;
 
+  private final MessageSource msg;
+
   @Autowired
-  public FlyApiService(FlyRepository flyRepo, GsonUtil gson) {
+  public FlyApiService(FlyRepository flyRepo, GsonUtil gson, MessageSource msg) {
     this.flyRepo = flyRepo;
     this.gson = gson;
+    this.msg = msg;
   }
 
   @Override
@@ -54,9 +59,9 @@ public class FlyApiService extends SimpleCrudApiService {
   @Override
   public String whenPost(ApiRequest request) throws RequestParamException {
     if (!request.getHeaders().containsKey("flybase_key")) {
-      throw new RequestParamException("flybase_key is null");
+      throw new RequestParamException(defaultMsgArg("error.arg.missingarg", "POSTarg/flybase_key"));
     } else if (request.getPostRawData() == null) {
-      throw new RequestParamException("content is null");
+      throw new RequestParamException(defaultMsgArg("error.arg.missingarg", "HTTP content"));
     }
 
     String contentJson = request.getPostRawData();
@@ -81,6 +86,14 @@ public class FlyApiService extends SimpleCrudApiService {
   public String whenDelete(ApiRequest request) throws RequestParamException {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  private String defaultMsg(String key) {
+    return msg.getMessage(key, null, Locale.KOREA);
+  }
+
+  private String defaultMsgArg(String key, String arg) {
+    return msg.getMessage(key + arg, null, Locale.KOREA);
   }
 
 }

@@ -2,10 +2,9 @@ package kr.ec.queryfly.analyzer.web.service;
 
 import org.springframework.stereotype.Service;
 
-import com.google.gson.JsonObject;
-
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 import kr.ec.queryfly.analyzer.model.ApiRequest;
+import kr.ec.queryfly.analyzer.util.JsonResult;
 
 
 @Service("notFound")
@@ -32,9 +31,7 @@ public class NotFoundApiService extends SimpleCrudApiService {
   }
 
   private String jsonNotFound() {
-    JsonObject response = new JsonObject();
-    response.addProperty("resultCode", "404");
-    return response.toString();
+    return new JsonResult().httpResult(404, "notFound");
   }
 
 }
