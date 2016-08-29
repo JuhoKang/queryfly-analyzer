@@ -58,6 +58,11 @@ public class FlyApiService extends SimpleCrudApiService {
 
   @Override
   public String whenPost(ApiRequest request) throws RequestParamException {
+    List<String> uriElements = getSplittedPath(request.getUri());
+    if (uriElements.size() > 1) {
+      throw new RequestParamException(defaultMsgArg("error.arg.notvalidrequest", "/fly POST"));
+    }
+
     if (!request.getHeaders().containsKey("flybase_key")) {
       throw new RequestParamException(defaultMsgArg("error.arg.missingarg", "POSTarg/flybase_key"));
     } else if (request.getPostRawData() == null) {
@@ -65,7 +70,11 @@ public class FlyApiService extends SimpleCrudApiService {
     }
 
     String contentJson = request.getPostRawData();
-    ObjectId flybaseId = new ObjectId(request.getHeaders().get("flybase_key"));
+    String flybaseIdString = request.getHeaders().get("flybase_key");
+    if (!ObjectId.isValid(flybaseIdString)) {
+      throw new RequestParamException(defaultMsg("error.notvalidfbkey"));
+    }
+    ObjectId flybaseId = new ObjectId(flybaseIdString);
 
     Fly contentFly = gson.getGson().fromJson(contentJson, Fly.class);
     // System.out.println(contentFly);
