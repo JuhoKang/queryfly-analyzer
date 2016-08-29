@@ -45,7 +45,7 @@ public class CSVtoFliesConverter {
 
       // LocalDateTime.parse(answers.get(0), format).atZone(ZoneId.of("+09"))
       // the google form only has local time. converted to UTC+09
-      // this part is too buggy. used a turn around
+      // this part is too buggy. used a turn around adding a whitespace
       // http://stackoverflow.com/questions/37287103/why-does-gmt8-fail-to-parse-with-pattern-o-despite-being-copied-straight-ou
 
       DateTimeFormatter format =
@@ -56,7 +56,6 @@ public class CSVtoFliesConverter {
       result.add(fly);
 
     }
-
 
     return result;
   }

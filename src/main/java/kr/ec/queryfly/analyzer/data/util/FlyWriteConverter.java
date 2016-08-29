@@ -39,8 +39,8 @@ public class FlyWriteConverter implements Converter<Fly, DBObject> {
     List<DBObject> list = new ArrayList<DBObject>();
     for (QaPair item : source.getQaPairs()) {
       list.add(qpwConverter.convert(item));
-      dbo.put("qaPairs", list);
     }
+    dbo.put("qaPairs", list);
 
     return dbo;
   }

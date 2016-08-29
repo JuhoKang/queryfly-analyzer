@@ -1,11 +1,14 @@
 package kr.ec.queryfly.analyzer.web.service;
 
+import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 import kr.ec.queryfly.analyzer.core.SimpleCrudApiService;
 import kr.ec.queryfly.analyzer.data.service.FlyRepository;
@@ -44,13 +48,16 @@ public class FlybaseApiService extends SimpleCrudApiService {
 
   private final FlybaseAnalyzer analyzer;
 
+  private final MessageSource msg;
+
   @Autowired
   public FlybaseApiService(FlybaseRepository flybaseRepo, FlyRepository flyRepo, GsonUtil gson,
-      FlybaseAnalyzer analyzer) {
+      FlybaseAnalyzer analyzer, MessageSource msg) {
     this.flybaseRepo = flybaseRepo;
     this.flyRepo = flyRepo;
     this.gson = gson;
     this.analyzer = analyzer;
+    this.msg = msg;
   }
 
   @Override
@@ -88,7 +95,7 @@ public class FlybaseApiService extends SimpleCrudApiService {
     } else if (uriElements.size() == 2) {
       String flybaseId = uriElements.get(1);
       if (!ObjectId.isValid(flybaseId)) {
-        throw new RequestParamException("not a valid flybase_key.");
+        throw new RequestParamException(msg.getMessage("error.notvalidfbkey", null, Locale.KOREA));
       }
 
       Page<Fly> flyPage =
@@ -140,11 +147,24 @@ public class FlybaseApiService extends SimpleCrudApiService {
     if (uriElements.size() == 1) {
       if (!request.getPostFormData().containsKey("name")
           || !request.getPostFormData().containsKey("description")) {
-        throw new RequestParamException();
+        throw new RequestParamException("필수 POST 파라미터가 빠졌습니다. (name, description)");
       }
-      Flybase flybase = new Flybase.Builder(request.getPostFormData().get("name"))
-          .description(request.getPostFormData().get("description")).createTime(ZonedDateTime.now())
-          .build();
+
+      Flybase.Builder builder = new Flybase.Builder(request.getPostFormData().get("name"))
+          .description(request.getPostFormData().get("description"))
+          .createTime(ZonedDateTime.now());
+
+      if (request.getPostFormData().containsKey("keywords")) {
+        Type listType = new TypeToken<List<String>>() {}.getType();
+        List<String> keywords =
+            gson.getGson().fromJson(request.getPostFormData().get("keywords"), listType);
+        /*
+         * for (String s : keywords) { System.out.println("show keywords :" + s); }
+         */
+        builder.keywords(keywords);
+      }
+
+      Flybase flybase = builder.build();
       Flybase resultFlybase = flybaseRepo.save(flybase);
       return gson.toJson(resultFlybase);
 

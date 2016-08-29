@@ -3,11 +3,13 @@ package kr.ec.queryfly.analyzer.config;
 import java.net.InetSocketAddress;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.context.support.ResourceBundleMessageSource;
 
 @Configuration
 @ComponentScan("kr.ec.queryfly.analyzer.config, kr.ec.queryfly.analyzer.web.service, kr.ec.queryfly.analyzer.core, kr.ec.queryfly.analyzer.data.util, kr.ec.queryfly.analyzer.util, kr.ec.queryfly.analyzer.stat")
@@ -47,4 +49,11 @@ public class AppServerContextConfig {
     return new PropertySourcesPlaceholderConfigurer();
   }
 
+  @Bean
+  public MessageSource messageSource() {
+    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+    messageSource.setBasename("locale/messages");
+    messageSource.setDefaultEncoding("UTF-8");
+    return messageSource;
+  }
 }

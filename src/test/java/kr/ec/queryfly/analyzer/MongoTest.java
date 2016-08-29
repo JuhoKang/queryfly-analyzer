@@ -37,8 +37,8 @@ import kr.ec.queryfly.analyzer.web.service.FlybaseApiService;
 import kr.ec.queryfly.analyzer.web.service.RequestParamException;
 import kr.ec.queryfly.analyzer.web.service.ServiceException;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {AppServerContextConfig.class, MongoConfig.class})
+//@RunWith(SpringJUnit4ClassRunner.class)
+//@ContextConfiguration(classes = {AppServerContextConfig.class, MongoConfig.class})
 public class MongoTest {
 
   @Autowired
