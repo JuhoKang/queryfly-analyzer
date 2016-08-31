@@ -29,14 +29,12 @@ public class FlybaseWriteConverter implements Converter<Flybase, DBObject> {
     }
 
     if (source.getCreateTime() != null) {
-      dbo.put("createTime",
-          source.getCreateTime().format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
-    }
-    
-    if (source.getKeywords() != null){
-      dbo.put("keywords", source.getKeywords());
+      dbo.put("createTime", source.getCreateTime().format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
     }
 
+    if (source.getKeywords() != null) {
+      dbo.put("keywords", source.getKeywords());
+    }
 
     return dbo;
   }

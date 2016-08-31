@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 import kr.ec.queryfly.analyzer.model.AcPair;
+import kr.ec.queryfly.analyzer.model.AnswerOption;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.model.QaPair;
 
@@ -34,15 +35,17 @@ public class FlybaseAnalyzer {
 
     for (Fly e : flies) {
       for (QaPair pair : e.getQaPairs()) {
-        if (result.containsKey(pair)) {
-          int num = result.get(pair);
+        QaPair woAnswer = QaPair.Builder.from(pair).removeAnswer().build();
+        if (result.containsKey(woAnswer)) {
+          int num = result.get(woAnswer);
           num++;
-          result.put(pair, num);
+          result.put(woAnswer, num);
         } else {
-          result.put(pair, 1);
+          result.put(woAnswer, 1);
         }
       }
     }
+
     return result;
   }
 
@@ -104,6 +107,33 @@ public class FlybaseAnalyzer {
     }
 
     return result;
+
+  }
+
+  public Map<QaPair, Integer> findByQuestion(String question, Map<QaPair, Integer> info) {
+    Map<QaPair, Integer> result = new HashMap<>();
+
+    for (Map.Entry<QaPair, Integer> entry : info.entrySet()) {
+      if (question.equals(entry.getKey().getQuestion())) {
+        result.put(entry.getKey(), entry.getValue());
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * 
+   * @param question
+   * @param info
+   * @return
+   */
+  public AnswerOption assumeOption(String question, Map<QaPair, Integer> info) {
+
+    // logic to assume the questions' option.
+
+    // TODO
+    return new AnswerOption.Builder("").build();
 
   }
 

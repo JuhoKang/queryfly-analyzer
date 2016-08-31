@@ -63,6 +63,18 @@ public class QaPair {
       return this;
     }
 
+    public static Builder from(QaPair pair) {
+      Builder builder = new Builder(pair.getQuestion());
+      builder.answerOption = pair.getAnswerOption();
+      builder.answer = pair.getAnswer();
+      return builder;
+    }
+
+    public Builder removeAnswer() {
+      this.answer = null;
+      return this;
+    }
+
     public QaPair build() {
       return new QaPair(this);
     }
