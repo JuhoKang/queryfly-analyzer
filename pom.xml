@@ -121,6 +121,36 @@
 			<artifactId>mockito-core</artifactId>
 			<version>1.10.19</version>
 		</dependency>
+
+		<!-- arirang Kor analyzer -->
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-core</artifactId>
+			<version>6.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-analyzers-common</artifactId>
+			<version>6.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>arirang</groupId>
+			<artifactId>arirang.analyzer</artifactId>
+			<version>6.1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/arirang.lucene-analyzer-6.1-1.0.0.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>arirang</groupId>
+			<artifactId>arirang.morph</artifactId>
+			<version>1.0.3</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/arirang-morph-1.0.3.jar</systemPath>
+		</dependency>
+		<!-- arirang -->
 	</dependencies>
 
 
