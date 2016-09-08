@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.lucene.analysis.util.CharArrayMap.EntrySet;
 import org.springframework.stereotype.Component;
 
 import kr.ec.queryfly.analyzer.model.AcPair;
@@ -128,12 +129,64 @@ public class FlybaseAnalyzer {
    * @param info
    * @return
    */
-  public AnswerOption assumeOption(String question, Map<QaPair, Integer> info) {
+  public AnswerOption assumeOption(Map<QaPair, Integer> info) {
 
     // logic to assume the questions' option.
 
-    // TODO
-    return new AnswerOption.Builder("").build();
+    // first assume its a "short"
+    AnswerOption.Builder optionBuilder = new AnswerOption.Builder("short");
+
+    int uniqueAnswers = info.entrySet().size();
+
+    // If the number of unique answers is below 10 assume its a "select"
+    if (info.entrySet().size() < 10) {
+
+      String option = "select";
+
+      List<String> answerPool = new ArrayList<>();
+
+      for (Map.Entry<QaPair, Integer> entry : info.entrySet()) {
+        if (entry.getKey().getAnswer().length() > 100) {
+          optionBuilder = new AnswerOption.Builder("long");
+          break;
+        }
+      }
+
+      for (Map.Entry<QaPair, Integer> entry : info.entrySet()) {
+        if (entry.getKey() == null || entry.getKey().getAnswer().equals("")) {
+          uniqueAnswers--;
+        } else {
+          answerPool.add(entry.getKey().getAnswer());
+        }
+      }
+
+      return new AnswerOption.Builder(option + "-" + uniqueAnswers).answerPool(answerPool).build();
+
+    } else {
+
+      // TODO extract answerpool from multi.
+      int multiPotential = 0;
+
+      // If There is a answer longer than 100, its a "long"
+      // If there are answers with a comma and has duplicate answers multiPotential++
+      for (Map.Entry<QaPair, Integer> entry : info.entrySet()) {
+        if (entry.getKey().getAnswer().contains(",") && entry.getValue() > 1) {
+          multiPotential++;
+        }
+      }
+
+      if (multiPotential > 3) {
+        optionBuilder = new AnswerOption.Builder("multi");
+      }
+
+    }
+
+    return optionBuilder.build();
+
+  }
+
+  // TODO
+  public void assumeKeywords() {
 
   }
 

@@ -95,4 +95,43 @@ public class FlybaseAnalyzerTest {
   @Test
   public void testSortToQacPairs() {}
 
+  @Test
+  public void testAssumeOption() {
+
+  }
+
+  public List<Fly> makeTestFlies() {
+    List<QaPair> qaPairs = new ArrayList<QaPair>();
+    for (int i = 1; i < 10; i++) {
+      QaPair qp = new QaPair.Builder("question" + 10 / i)
+          .answerOption(new AnswerOption.Builder("select-4").build()).answer("answer" + 2 / i)
+          .build();
+      System.out.println(qp);
+      qaPairs.add(qp);
+    }
+
+    QaPair qp102 = new QaPair.Builder("question" + 10)
+        .answerOption(new AnswerOption.Builder("select-4").build()).answer("answer" + 2).build();
+    QaPair qp51 = new QaPair.Builder("question" + 5)
+        .answerOption(new AnswerOption.Builder("select-4").build()).answer("answer" + 1).build();
+    QaPair qp30 = new QaPair.Builder("question" + 3)
+        .answerOption(new AnswerOption.Builder("select-4").build()).answer("answer" + 0).build();
+    QaPair qp20 = new QaPair.Builder("question" + 2)
+        .answerOption(new AnswerOption.Builder("select-4").build()).answer("answer" + 0).build();
+    QaPair qp10 = new QaPair.Builder("question" + 1)
+        .answerOption(new AnswerOption.Builder("select-4").build()).answer("answer" + 0).build();
+    QaPair qp11 = new QaPair.Builder("question" + 1)
+        .answerOption(new AnswerOption.Builder("select-4").build()).answer("answer" + 1).build();
+
+    qaPairs.add(qp11);
+    qaPairs.add(qp11);
+    // two adds
+
+    Fly fly1 = new Fly.Builder(qaPairs).flybaseId(new ObjectId()).build();
+    List<Fly> flies = new ArrayList<Fly>();
+    flies.add(fly1);
+
+    return flies;
+  }
+
 }
