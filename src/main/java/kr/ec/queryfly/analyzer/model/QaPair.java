@@ -7,6 +7,7 @@ public class QaPair {
 
   private final String question;
   private final AnswerOption answerOption;
+  // A answer which is not "multi" must not have ";"
   private final String answer;
 
   public String getQuestion() {

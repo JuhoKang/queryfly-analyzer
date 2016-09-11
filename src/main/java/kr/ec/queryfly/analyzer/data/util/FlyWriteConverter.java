@@ -29,13 +29,12 @@ public class FlyWriteConverter implements Converter<Fly, DBObject> {
     if (source.getId() != null) {
       dbo.put("_id", source.getId());
     }
-
-    dbo.put("flybaseId", source.getFlybaseId());
-
-    if (source.getCreateTime() != null) {
-      dbo.put("flybaseId", source.getCreateTime().format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
+    if (source.getFlybaseId() != null) {
+      dbo.put("flybaseId", source.getFlybaseId());
     }
-
+    if (source.getCreateTime() != null) {
+      dbo.put("createTime", source.getCreateTime().format(DateTimeFormatter.ISO_ZONED_DATE_TIME));
+    }
     List<DBObject> list = new ArrayList<DBObject>();
     for (QaPair item : source.getQaPairs()) {
       list.add(qpwConverter.convert(item));

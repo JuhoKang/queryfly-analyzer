@@ -2,6 +2,7 @@ package kr.ec.queryfly.analyzer.web.service;
 
 import java.lang.reflect.Type;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -143,7 +144,6 @@ public class FlybaseApiService extends SimpleCrudApiService {
   public String whenPost(ApiRequest request) throws RequestParamException {
     List<String> uriElements = getSplittedPath(request.getUri());
 
-
     // ("/flybase")
     if (uriElements.size() == 1) {
       if (!request.getPostFormData().containsKey("name")
@@ -190,8 +190,16 @@ public class FlybaseApiService extends SimpleCrudApiService {
 
       } else if (request.getHeaders().get(CustomMediaType.HEADER_CONTENT_TYPE_VALUE)
           .contains(CustomMediaType.APPLICATION_JSON_VALUE)) {
-        // TODO
-        return "";
+        String jsonInput = request.getPostRawData();
+        Type flyListType = new TypeToken<List<Fly>>() {}.getType();
+        List<Fly> rawFlies = gson.getGson().fromJson(jsonInput, flyListType);
+        List<Fly> flies = new ArrayList<Fly>();
+        for (Fly e : rawFlies) {
+          flies.add(new Fly.Builder(e.getQaPairs()).flybaseId(new ObjectId(flybaseId))
+              .createTime(ZonedDateTime.now()).build());
+        }
+        List<Fly> resultFlies = flyRepo.save(flies);
+        return gson.toJson(resultFlies);
 
       } else {
         throw new RequestParamException(defaultMsg("error.notsupportedcontenttype"));

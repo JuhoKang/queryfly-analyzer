@@ -93,6 +93,17 @@ public class FlybaseAnalyzerTest {
   }
 
   @Test
+  public void testGetQueryInfo() {
+
+  }
+
+  @Test
+  public void testAssumeKeyword() {
+    analyzer.assumeKeywords();
+  }
+
+
+  @Test
   public void testSortToQacPairs() {}
 
   @Test

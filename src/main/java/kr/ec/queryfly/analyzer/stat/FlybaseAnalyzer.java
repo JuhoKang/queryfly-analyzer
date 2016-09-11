@@ -2,11 +2,16 @@ package kr.ec.queryfly.analyzer.stat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.apache.lucene.analysis.util.CharArrayMap.EntrySet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import com.google.common.base.Splitter;
 
 import kr.ec.queryfly.analyzer.model.AcPair;
 import kr.ec.queryfly.analyzer.model.AnswerOption;
@@ -24,6 +29,8 @@ import kr.ec.queryfly.analyzer.model.QaPair;
 @Component
 public class FlybaseAnalyzer {
 
+  private static final Logger logger = LoggerFactory.getLogger(FlybaseAnalyzer.class);
+
   public Map<String, List<AcPair>> analyzeStat(Iterable<Fly> flies) {
 
     return sortToQACPairs(calcQaPairs(flies));
@@ -32,17 +39,22 @@ public class FlybaseAnalyzer {
 
   public Map<QaPair, Integer> getQueryInfo(Iterable<Fly> flies) {
 
+    Map<QaPair, Integer> qaPairInfo = calcQaPairs(flies);
+
     Map<QaPair, Integer> result = new HashMap<QaPair, Integer>();
 
     for (Fly e : flies) {
       for (QaPair pair : e.getQaPairs()) {
-        QaPair woAnswer = QaPair.Builder.from(pair).removeAnswer().build();
-        if (result.containsKey(woAnswer)) {
-          int num = result.get(woAnswer);
+        QaPair.Builder woAnswerBuilder = QaPair.Builder.from(pair).removeAnswer();
+        if (result.containsKey(woAnswerBuilder.build())) {
+          int num = result.get(woAnswerBuilder.build());
           num++;
-          result.put(woAnswer, num);
+          result.put(woAnswerBuilder.build(), num);
         } else {
-          result.put(woAnswer, 1);
+
+          Map<QaPair, Integer> questionInfo = findByQuestion(pair.getQuestion(), qaPairInfo);
+          AnswerOption option = assumeOption(questionInfo);
+          result.put(woAnswerBuilder.answerOption(option).build(), 1);
         }
       }
     }
@@ -57,28 +69,42 @@ public class FlybaseAnalyzer {
 
     for (Fly e : flies) {
       for (QaPair pair : e.getQaPairs()) {
-        String option = pair.getAnswerOption().getOption();
-        if (option.startsWith("select-")) {
-          if (result.containsKey(pair)) {
-            int num = result.get(pair);
-            num++;
-            result.put(pair, num);
+        if (pair.getAnswerOption() != null) {
+          String option = pair.getAnswerOption().getOption();
+          if (option.startsWith("select-")) {
+            if (result.containsKey(pair)) {
+              int num = result.get(pair);
+              num++;
+              result.put(pair, num);
+            } else {
+              result.put(pair, 1);
+            }
+          } else if (option.startsWith("multi-")) {
+            if (result.containsKey(pair)) {
+              int num = result.get(pair);
+              num++;
+              result.put(pair, num);
+            } else {
+              result.put(pair, 1);
+            }
           } else {
-            result.put(pair, 1);
-          }
-        } else if (option.startsWith("multi-")) {
-          if (result.containsKey(pair)) {
-            int num = result.get(pair);
-            num++;
-            result.put(pair, num);
-          } else {
-            result.put(pair, 1);
+            // short, long
           }
         } else {
-          // short, long
+          if (result.containsKey(pair)) {
+            int num = result.get(pair);
+            num++;
+            result.put(pair, num);
+          } else {
+            result.put(pair, 1);
+          }
         }
       }
 
+    }
+
+    for (Map.Entry<QaPair, Integer> entry : result.entrySet()) {
+      System.out.println("K : " + entry.getKey() + "/ V :" + entry.getValue());
     }
 
     return result;
@@ -139,6 +165,39 @@ public class FlybaseAnalyzer {
     int uniqueAnswers = info.entrySet().size();
 
     // If the number of unique answers is below 10 assume its a "select"
+
+
+    int multiPotential = 0;
+
+    // If There is a answer longer than 100, its a "long"
+    // If there are answers with a semi colon and has duplicate answers multiPotential++
+    for (Map.Entry<QaPair, Integer> entry : info.entrySet()) {
+      if (entry.getKey().getAnswer().contains(";") && entry.getValue() > 0) {
+        multiPotential++;
+      }
+    }
+
+    logger.debug("multiPotential is :" + multiPotential);
+    if (multiPotential > 3) {
+      // TODO extract answerpool from multi.
+      Set<String> answerSet = new HashSet<>();
+      for (Map.Entry<QaPair, Integer> entry : info.entrySet()) {
+        String answer = entry.getKey().getAnswer();
+        if (answer.contains(";")) {
+          List<String> splittedList = Splitter.on(";").splitToList(answer);
+          answerSet.addAll(splittedList);
+        } else {
+          answerSet.add(answer);
+        }
+      }
+      // remove blanks
+      answerSet.remove("");
+
+      return new AnswerOption.Builder("multi-" + answerSet.size())
+          .answerPool(new ArrayList<String>(answerSet)).build();
+
+    }
+
     if (info.entrySet().size() < 10) {
 
       String option = "select";
@@ -162,24 +221,8 @@ public class FlybaseAnalyzer {
 
       return new AnswerOption.Builder(option + "-" + uniqueAnswers).answerPool(answerPool).build();
 
-    } else {
-
-      // TODO extract answerpool from multi.
-      int multiPotential = 0;
-
-      // If There is a answer longer than 100, its a "long"
-      // If there are answers with a comma and has duplicate answers multiPotential++
-      for (Map.Entry<QaPair, Integer> entry : info.entrySet()) {
-        if (entry.getKey().getAnswer().contains(",") && entry.getValue() > 1) {
-          multiPotential++;
-        }
-      }
-
-      if (multiPotential > 3) {
-        optionBuilder = new AnswerOption.Builder("multi");
-      }
-
     }
+
 
     return optionBuilder.build();
 
