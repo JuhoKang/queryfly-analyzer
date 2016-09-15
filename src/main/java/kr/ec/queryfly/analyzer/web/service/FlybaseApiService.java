@@ -27,6 +27,7 @@ import kr.ec.queryfly.analyzer.model.ApiRequest;
 import kr.ec.queryfly.analyzer.model.CustomMediaType;
 import kr.ec.queryfly.analyzer.model.Fly;
 import kr.ec.queryfly.analyzer.model.Flybase;
+import kr.ec.queryfly.analyzer.model.QaPair;
 import kr.ec.queryfly.analyzer.stat.CSVtoFliesConverter;
 import kr.ec.queryfly.analyzer.stat.FlybaseAnalyzer;
 import kr.ec.queryfly.analyzer.util.GsonUtil;
@@ -130,7 +131,16 @@ public class FlybaseApiService extends SimpleCrudApiService {
 
         return gson.toJson(analyzer.getQueryInfo(flies));
 
+      } else if (operation.equals("keyword")) {
+        Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseId), new PageRequest(0, 200));
+        Map<QaPair, Integer> queryInfo = analyzer.getQueryInfo(flies);
+        String addedString = "";
+        for (QaPair e : queryInfo.keySet()) {
+          addedString += e.getQuestion() + " ";
+        }
+        return gson.toJson(analyzer.assumeKeywords(addedString));
       } else {
+
         throw new RequestParamException(
             defaultMsgArg("error.arg.nooperation", "/flybase/{id}/(operation) GET."));
       }

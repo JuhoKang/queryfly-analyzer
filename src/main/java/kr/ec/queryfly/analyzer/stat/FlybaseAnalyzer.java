@@ -1,12 +1,19 @@
 package kr.ec.queryfly.analyzer.stat;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.ko.KoreanAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -229,8 +236,87 @@ public class FlybaseAnalyzer {
   }
 
   // TODO
-  public void assumeKeywords() {
+  public List<String> assumeKeywords(String source) {
+    List<String> result = new ArrayList<>();
+    Map<String, Integer> wordMap = new HashMap<>();
+    KoreanAnalyzer analyzer = new KoreanAnalyzer();
+    TokenStream stream = analyzer.tokenStream("tempstream", new StringReader(source));
 
+    CharTermAttribute termAtt = stream.addAttribute(CharTermAttribute.class);
+    try {
+      stream.reset();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    try {
+      while (stream.incrementToken()) {
+        if (wordMap.containsKey(termAtt.toString())) {
+          int num = wordMap.get(termAtt.toString());
+          num++;
+          wordMap.put(termAtt.toString(), num);
+        } else {
+          wordMap.put(termAtt.toString(), 1);
+        }
+      }
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    analyzer.close();
+    try {
+      stream.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    ValueComparator<String, Integer> comparator = new ValueComparator<String, Integer>(wordMap);
+    TreeMap<String, Integer> reverse =
+        new TreeMap<String, Integer>(new ReverseComparator<String>(comparator));
+    reverse.putAll(wordMap);
+    logger.debug("" + reverse);
+
+    if (reverse.size() < 5) {
+      for (int i = 0; i < reverse.size(); i++) {
+        result.add(reverse.pollFirstEntry().getKey());
+      }
+    } else {
+      for (int i = 0; i < 5; i++) {
+        result.add(reverse.pollFirstEntry().getKey());
+      }
+    }
+
+    return result;
+  }
+
+  private static class ValueComparator<K extends Comparable<K>, V extends Comparable<V>>
+      implements Comparator<K> {
+    private Map<K, V> map;
+
+    ValueComparator(Map<K, V> map) {
+      this.map = map;
+    }
+
+    public int compare(K o1, K o2) {
+      int p = map.get(o1).compareTo(map.get(o2));
+      if (p != 0) {
+        return p;
+      }
+      return o1.compareTo(o2);
+    }
+  }
+  private static class ReverseComparator<T> implements Comparator<T> {
+    private Comparator<T> comparator;
+
+    ReverseComparator(Comparator<T> comparator) {
+      this.comparator = comparator;
+    }
+
+    public int compare(T o1, T o2) {
+      return -1 * comparator.compare(o1, o2);
+    }
   }
 
 

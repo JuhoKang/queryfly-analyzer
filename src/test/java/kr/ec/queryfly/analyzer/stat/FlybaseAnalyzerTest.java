@@ -2,6 +2,9 @@ package kr.ec.queryfly.analyzer.stat;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +13,9 @@ import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
 import kr.ec.queryfly.analyzer.model.AnswerOption;
 import kr.ec.queryfly.analyzer.model.Fly;
@@ -99,7 +105,19 @@ public class FlybaseAnalyzerTest {
 
   @Test
   public void testAssumeKeyword() {
-    analyzer.assumeKeywords();
+    String jsonCase = null;
+    try {
+      jsonCase = Files.toString(new File(this.getClass().getResource("/InputCase1").toURI()),
+          Charsets.UTF_8);
+    } catch (IOException | URISyntaxException e1) { // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+    List<String> result = null;
+    result = analyzer.assumeKeywords(jsonCase);
+
+    for (String s : result) {
+      System.out.println("keyword : " + s);
+    }
   }
 
 
