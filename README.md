@@ -13,7 +13,7 @@ Running queryfly-analyzer
 1. ```git clone``` this repository.
 2. Install MongoDB and run it with default settings.
 3. Install arirang dependencies
-4. ```mvn install:install-file -Dfile=src/main/resources/arirang-morph-1.0.3.jar -DgroupId=arirang -DartifactId=arirang.morph -Dversion=1.0.3 -Dpackaging=jar ```
+4. ```mvn install:install-file -Dfile=src/main/resources/arirang.lucene-analyzer-6.1-1.0.0.jar -DgroupId=arirang -DartifactId=arirang.analyzer -Dversion=6.1 -Dpackaging=jar ```
 5. ```mvn install:install-file -Dfile=src/main/resources/arirang-morph-1.0.3.jar -DgroupId=arirang -DartifactId=arirang.morph -Dversion=1.0.3 -Dpackaging=jar ```
 6. Run queryfly-analyzer  
 7. ```mvn clean install exec:java -Dexec.mainClass="kr.ec.queryfly.analyzer.main.AppServerMain" ```
