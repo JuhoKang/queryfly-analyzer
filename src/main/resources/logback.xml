@@ -17,12 +17,12 @@
 	</logger>
 
 	<!-- 3rdparty Loggers -->
-	<logger name="org.springframework.core">
+	<logger name="org.springframework.boot">
 		<level value="debug" />
 		<appender-ref ref="consoleAppender" />
 	</logger>
 
-	<logger name="org.springframework.beans">
+	<!--<logger name="org.springframework.beans">
 		<level value="debug" />
 		<appender-ref ref="consoleAppender" />
 	</logger>
@@ -31,7 +31,7 @@
 		<level value="debug" />
 		<appender-ref ref="consoleAppender" />
 	</logger>
-
+-->
 	<!-- mute driver cluster log -->
 	<logger name="org.mongodb.driver.cluster">
 		<level value="info" />
