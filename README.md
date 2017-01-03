@@ -21,13 +21,12 @@ Running queryfly-analyzer
 Usage, How To
 ----------------------------
 
+* To do
+
 
 API spec doc
 ----------------------------
 https://docs.google.com/document/d/1V9O-RYaYt1RX4b96pMbf-Pa1-kGa4706fS36imVE2Hc/edit?usp=sharing
-
-
-* To do
 
 
 This project is based on
