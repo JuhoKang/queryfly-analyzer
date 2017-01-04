@@ -117,18 +117,20 @@ public class FlybaseController {
   }
 
   @RequestMapping(value = "/{flybase_key}/stat", method = RequestMethod.GET)
-  public String getFlybaseStatById(@PathVariable("flybase_key") String flybaseKey) throws RequestParamException {
+  public String getFlybaseStatById(@PathVariable("flybase_key") String flybaseKey)
+      throws RequestParamException {
     if (!ObjectId.isValid(flybaseKey)) {
       throw new RequestParamException(defaultMsg("error.notvalidfbkey"));
     }
     // TODO should change pageRequestThing
     Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseKey), new PageRequest(0, 200));
 
-    return rawStatToJson(analyzer.analyzeStat(flies));
+    return rawStatToJsonStat(analyzer.analyzeStat(flies), analyzer.assumeKeywords(getFlatQueryString(flybaseKey)));
   }
 
   @RequestMapping(value = "/{flybase_key}/query", method = RequestMethod.GET)
-  public String getFlybaseQueryById(@PathVariable("flybase_key") String flybaseKey) throws RequestParamException {
+  public String getFlybaseQueryById(@PathVariable("flybase_key") String flybaseKey)
+      throws RequestParamException {
 
     if (!ObjectId.isValid(flybaseKey)) {
       throw new RequestParamException(defaultMsg("error.notvalidfbkey"));
@@ -139,17 +141,12 @@ public class FlybaseController {
   }
 
   @RequestMapping(value = "{flybase_key}/keyword", method = RequestMethod.GET)
-  public String getFlybaseKeywordsById(@PathVariable("flybase_key") String flybaseKey) throws RequestParamException {
+  public String getFlybaseKeywordsById(@PathVariable("flybase_key") String flybaseKey)
+      throws RequestParamException {
     if (!ObjectId.isValid(flybaseKey)) {
       throw new RequestParamException(defaultMsg("error.notvalidfbkey"));
     }
-    Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseKey), new PageRequest(0, 200));
-    Map<QaPair, Integer> queryInfo = analyzer.getQueryInfo(flies);
-    String addedString = "";
-    for (QaPair e : queryInfo.keySet()) {
-      addedString += e.getQuestion() + " ";
-    }
-    return gson.toJson(analyzer.assumeKeywords(addedString));
+    return gson.toJson(analyzer.assumeKeywords(getFlatQueryString(flybaseKey)));
   }
 
   @RequestMapping(method = RequestMethod.POST)
@@ -214,9 +211,15 @@ public class FlybaseController {
   }
 
 
-  private String rawStatToJson(Map<String, List<AcPair>> rawStat) {
+  private String rawStatToJsonStat(Map<String, List<AcPair>> rawStat, List<String> assumeList) {
     JsonObject obj = new JsonObject();
     JsonArray array = new JsonArray();
+
+    JsonArray assumeArray = new JsonArray();
+    for(String s : assumeList){
+      assumeArray.add(s);
+    }
+    obj.add("keywords",assumeArray);
 
     for (Map.Entry<String, List<AcPair>> entry : rawStat.entrySet()) {
       JsonObject tempObj = new JsonObject();
@@ -242,6 +245,29 @@ public class FlybaseController {
 
   private String defaultMsgArg(String key, String arg) {
     return msg.getMessage(key + arg, null, Locale.KOREA);
+  }
+
+  private String flattenFlyListToString(List<Fly> flies) {
+
+    StringBuffer buf = new StringBuffer();
+    for (Fly fly : flies) {
+      buf.append(fly.toString());
+    }
+    return buf.toString();
+  }
+
+  private String getFlatQueryString(String flybaseKey) {
+
+    Page<Fly> flies = flyRepo.findByFlybaseId(new ObjectId(flybaseKey), new PageRequest(0, 200));
+    Map<QaPair, Integer> queryInfo = analyzer.getQueryInfo(flies);
+
+    StringBuffer buf = new StringBuffer();
+    for (QaPair e : queryInfo.keySet()) {
+      buf.append(e.getQuestion());
+      buf.append(" ");
+    }
+
+    return buf.toString();
   }
 
 }
