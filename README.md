@@ -6,7 +6,9 @@ Currently it's a buggy prototype!
 
 What is queryfly-analyzer?
 ----------------------------
-__queryfly-analyzer__ is a web server which analyzes input data based on a _Question/Reply(Q/R)_ format. It aims to parse any kind of text data which is in the _Q/R_ format. More than parsing, it will try to mix up similar data and give reliable mixed data. Currently it only aims to analyzer Korean texts.
+__queryfly-analyzer__ is a web server which analyzes input data based on a _Question/Reply(Q/R)_ format. It aims to parse any kind of text data which is in the _Q/R_ format. More than parsing, it will try to mix up similar data and give reliable mixed data. Currently it only aims to analyze Korean texts.
+
+![alt text](https://github.com/JuhoKang/queryfly-analyzer/blob/master/picture.png "picture")
 
 Running queryfly-analyzer
 ----------------------------
@@ -21,7 +23,7 @@ Running queryfly-analyzer
 Usage, How To
 ----------------------------
 
-* To do
+* Read API spec doc
 
 
 API spec doc
